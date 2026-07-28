@@ -80,6 +80,7 @@ def index_repository(
             extract_source(source, language_id),
         )
         indexed += 1
+    store.resolve_references()  # once, after the walk: O(repo), not O(repo^2)
     return IndexResult(indexed=indexed, skipped_large=skipped_large, failed=failed)
 
 

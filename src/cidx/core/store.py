@@ -17,6 +17,7 @@ from importlib.metadata import version
 from pathlib import Path
 from types import TracebackType
 
+from cidx.core import resolve
 from cidx.core.schema import DROP_SQL, SCHEMA_SQL, SCHEMA_VERSION
 from cidx.extractors.base import Extraction
 
@@ -142,6 +143,21 @@ class Store:
             connection.execute("ROLLBACK")
             raise
 
+    def resolve_references(self) -> None:
+        """Recompute the resolution cascade over the whole index.
+
+        Called after mutations (and once after a cold walk) so incremental
+        and cold indexes agree on resolved targets.
+        """
+        connection = self._connection
+        connection.execute("BEGIN")
+        try:
+            resolve.resolve_all(connection)
+            connection.execute("COMMIT")
+        except BaseException:
+            connection.execute("ROLLBACK")
+            raise
+
     def file_record(self, path: str) -> sqlite3.Row | None:
         """The files row for *path* (id, hashes, times), or None."""
         return self._connection.execute(
@@ -206,8 +222,11 @@ class Store:
         refs = {
             tuple(row)
             for row in connection.execute(
-                "SELECT f.path, r.name, r.line, r.confidence"
+                "SELECT f.path, r.name, r.line, r.confidence,"
+                " rf.path, rs.qualified_name"
                 " FROM refs r JOIN files f ON f.id = r.file_id"
+                " LEFT JOIN symbols rs ON rs.id = r.resolved_symbol_id"
+                " LEFT JOIN files rf ON rf.id = rs.file_id"
             )
         }
         return {"files": files, "symbols": symbols, "refs": refs}
@@ -235,6 +254,14 @@ class Store:
             "INSERT INTO symbols_fts (symbols_fts, rowid, name, qualified_name,"
             " signature) SELECT 'delete', id, name, qualified_name, signature"
             " FROM symbols WHERE file_id = ?",
+            (file_id,),
+        )
+        # other files' refs may resolve into this file's symbols; detach them
+        # (the resolution recompute after every mutation re-derives truth)
+        connection.execute(
+            "UPDATE refs SET resolved_symbol_id = NULL, confidence = 'name-only'"
+            " WHERE resolved_symbol_id IN"
+            " (SELECT id FROM symbols WHERE file_id = ?)",
             (file_id,),
         )
         connection.execute("DELETE FROM files WHERE id = ?", (file_id,))

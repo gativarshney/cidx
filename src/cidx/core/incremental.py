@@ -53,6 +53,7 @@ def refresh_path(
         if known is None:
             return "absent"
         store.remove_file(rel)
+        store.resolve_references()
         return "removed"
 
     digest = hashing.content_hash(data)
@@ -65,6 +66,7 @@ def refresh_path(
         stat.st_mtime,
         indexer.extract_source(data, language_id),
     )
+    store.resolve_references()
     return "updated"
 
 

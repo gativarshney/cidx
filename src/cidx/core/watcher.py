@@ -119,6 +119,7 @@ class Watcher:
                         del pending[path]
                         if path in ignored:
                             store.remove_file(path)
+                            store.resolve_references()
                         else:
                             incremental.refresh_path(
                                 store, self._root, path, self._max_file_bytes
@@ -141,6 +142,9 @@ class Watcher:
             if self._stop_event.is_set():
                 return
             incremental.refresh_path(store, self._root, path, self._max_file_bytes)
+        # even an all-unchanged sweep re-resolves: hash short-circuits skip
+        # resolution, and truth includes resolved targets
+        store.resolve_references()
 
 
 def _git_ignored(root: Path, paths: list[str]) -> set[str]:
