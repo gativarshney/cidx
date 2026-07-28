@@ -23,7 +23,7 @@ Zero-config means exactly that: no API keys, no vector database, no Docker, no c
 - **Reference resolution** with confidence tags — `exact` (same file), `import` (followed to source), `name-only` — recomputed deterministically so incremental and cold indexes always agree.
 - **Ranking and token budgets**: engineered features (match tier, kind, popularity, locality, recency) under a weighted linear scorer; responses fit ~700 tokens with truncation markers and freshness stamps; misses recommend grep (fail open).
 - **Five read-only MCP tools** over stdio: `search_symbols`, `find_definition`, `find_references`, `outline_file`, `repo_map`.
-- **Proof of correctness**: a property-based convergence suite (hypothesis) asserts the incremental index equals a cold rebuild — including resolutions — across random edit/delete/rename storms, plus `cidx check` for users.
+- **Proof of correctness**: a property-based convergence suite (Hypothesis) asserts the incremental index equals a cold rebuild — including resolutions — across random edit/delete/rename storms, plus `cidx check` for users.
 - **Benchmark harness**: pinned datasets, 32 machine-checkable tasks (dev/holdout split), a scripted agent loop with a recorded-response stub model, and a scorer that recomputes every metric from raw JSONL logs alone. See [benchmark/methodology.md](benchmark/methodology.md).
 
 ## Quickstart (from source; PyPI release not yet published)
@@ -38,11 +38,11 @@ Index and query a repository:
 
 ```bash
 cidx index --repo path/to/your/repo
-cidx query save --repo path/to/your/repo            # definitions (exact, then fuzzy)
-cidx query save --references --repo path/to/repo    # usage sites with confidence
-cidx query src/app.py --outline --repo path/to/repo # every symbol in one file
-cidx query --repo-map --repo path/to/your/repo      # popular files + top symbols
-cidx check --repo path/to/your/repo                 # prove the index matches a cold rebuild
+cidx query save --repo path/to/your/repo                  # definitions (exact, then fuzzy)
+cidx query save --references --repo path/to/your/repo     # usage sites with confidence
+cidx query src/app.py --outline --repo path/to/your/repo  # every symbol in one file
+cidx query --repo-map --repo path/to/your/repo            # popular files + top symbols
+cidx check --repo path/to/your/repo                       # prove the index matches a cold rebuild
 cidx stats --repo path/to/your/repo
 ```
 
@@ -82,8 +82,8 @@ Test suite: **244 tests** (golden-file extractor tests, the property-based conve
   (functions, classes, methods, consts, imports) is fully covered.
 - **CommonJS exports are not tracked as bindings** (`module.exports = {...}`);
   `require(...)` calls do appear as references.
-- **No semantic or conceptual search** — by design (ADR-007): retrieval is
-  structural (names, references, structure), so "where is auth handled?"
+- **No semantic or conceptual search** — by design (ADR-007): retrieval works
+  on names, references, and file structure, so "where is auth handled?"
   style questions are out of scope until the benchmark proves they matter.
 - **Reference resolution has no type checker.** Confidence tags (`exact`,
   `import`, `name-only`) say how each reference was resolved; precision per
@@ -106,7 +106,9 @@ This repository also contains `benchmark/`: a reproducible harness that measures
 
 ## Who is building this
 
-I'm Gati Varshney, a final-year B.Tech CSE (Data Science) student, GSoC 2026 contributor at OpenPrinting, and Winter of Code 5.0 Top 20 Contributor. This project is built in public; the decision log is in the open, and the benchmark exists so that claims here are measurements, not adjectives.
+I'm Gati Varshney, a Google Summer of Code 2026 contributor.
+
+This project is built in public. The architectural decisions are documented, the implementation is fully open source, and the benchmark exists so that claims are backed by reproducible measurements rather than adjectives.
 
 ## License
 
