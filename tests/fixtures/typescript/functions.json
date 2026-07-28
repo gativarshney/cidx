@@ -1,0 +1,68 @@
+{
+  "symbols": [
+    {
+      "name": "greet",
+      "qualified_name": "greet",
+      "kind": "function",
+      "start_line": 1,
+      "end_line": 3,
+      "signature": "function greet(name: string): string",
+      "parent": null
+    },
+    {
+      "name": "double",
+      "qualified_name": "double",
+      "kind": "function",
+      "start_line": 5,
+      "end_line": 5,
+      "signature": "const double = (n: number): number =>",
+      "parent": null
+    },
+    {
+      "name": "outer",
+      "qualified_name": "outer",
+      "kind": "function",
+      "start_line": 7,
+      "end_line": 10,
+      "signature": "const outer = () =>",
+      "parent": null
+    },
+    {
+      "name": "inner",
+      "qualified_name": "outer.inner",
+      "kind": "function",
+      "start_line": 8,
+      "end_line": 8,
+      "signature": "const inner = () =>",
+      "parent": "outer"
+    },
+    {
+      "name": "fetchData",
+      "qualified_name": "fetchData",
+      "kind": "function",
+      "start_line": 12,
+      "end_line": 14,
+      "signature": "async function fetchData(url: string): Promise<Response>",
+      "parent": null
+    },
+    {
+      "name": "counter",
+      "qualified_name": "counter",
+      "kind": "function",
+      "start_line": 16,
+      "end_line": 18,
+      "signature": "function* counter(): Generator<number>",
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "inner",
+      "line": 9
+    },
+    {
+      "name": "fetch",
+      "line": 13
+    }
+  ]
+}

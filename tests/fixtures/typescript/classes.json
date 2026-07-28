@@ -1,0 +1,84 @@
+{
+  "symbols": [
+    {
+      "name": "Repository",
+      "qualified_name": "Repository",
+      "kind": "class",
+      "start_line": 2,
+      "end_line": 17,
+      "signature": "class Repository extends BaseRepo implements Store",
+      "parent": null
+    },
+    {
+      "name": "limit",
+      "qualified_name": "Repository.limit",
+      "kind": "const",
+      "start_line": 3,
+      "end_line": 3,
+      "signature": null,
+      "parent": "Repository"
+    },
+    {
+      "name": "handler",
+      "qualified_name": "Repository.handler",
+      "kind": "method",
+      "start_line": 4,
+      "end_line": 4,
+      "signature": "handler = (e: Event) =>",
+      "parent": "Repository"
+    },
+    {
+      "name": "constructor",
+      "qualified_name": "Repository.constructor",
+      "kind": "method",
+      "start_line": 6,
+      "end_line": 8,
+      "signature": "constructor(private db: Database)",
+      "parent": "Repository"
+    },
+    {
+      "name": "save",
+      "qualified_name": "Repository.save",
+      "kind": "method",
+      "start_line": 10,
+      "end_line": 12,
+      "signature": "async save(user: User): Promise<void>",
+      "parent": "Repository"
+    },
+    {
+      "name": "process",
+      "qualified_name": "Repository.process",
+      "kind": "method",
+      "start_line": 14,
+      "end_line": 16,
+      "signature": "private process(e: Event): void",
+      "parent": "Repository"
+    }
+  ],
+  "references": [
+    {
+      "name": "injectable",
+      "line": 1
+    },
+    {
+      "name": "BaseRepo",
+      "line": 2
+    },
+    {
+      "name": "Store",
+      "line": 2
+    },
+    {
+      "name": "process",
+      "line": 4
+    },
+    {
+      "name": "write",
+      "line": 11
+    },
+    {
+      "name": "validate",
+      "line": 15
+    }
+  ]
+}

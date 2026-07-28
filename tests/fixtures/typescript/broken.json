@@ -1,0 +1,14 @@
+{
+  "symbols": [
+    {
+      "name": "ok",
+      "qualified_name": "ok",
+      "kind": "function",
+      "start_line": 1,
+      "end_line": 3,
+      "signature": "function ok(): number",
+      "parent": null
+    }
+  ],
+  "references": []
+}

@@ -1,0 +1,62 @@
+{
+  "symbols": [
+    {
+      "name": "path",
+      "qualified_name": "path",
+      "kind": "const",
+      "start_line": 1,
+      "end_line": 1,
+      "signature": null,
+      "parent": null
+    },
+    {
+      "name": "loadConfig",
+      "qualified_name": "loadConfig",
+      "kind": "function",
+      "start_line": 3,
+      "end_line": 6,
+      "signature": "function loadConfig(file)",
+      "parent": null
+    },
+    {
+      "name": "Logger",
+      "qualified_name": "Logger",
+      "kind": "class",
+      "start_line": 8,
+      "end_line": 12,
+      "signature": "class Logger extends Base",
+      "parent": null
+    },
+    {
+      "name": "log",
+      "qualified_name": "Logger.log",
+      "kind": "method",
+      "start_line": 9,
+      "end_line": 11,
+      "signature": "log(msg)",
+      "parent": "Logger"
+    }
+  ],
+  "references": [
+    {
+      "name": "require",
+      "line": 1
+    },
+    {
+      "name": "read",
+      "line": 4
+    },
+    {
+      "name": "parse",
+      "line": 5
+    },
+    {
+      "name": "Base",
+      "line": 8
+    },
+    {
+      "name": "log",
+      "line": 10
+    }
+  ]
+}

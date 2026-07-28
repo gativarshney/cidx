@@ -1,0 +1,40 @@
+{
+  "symbols": [
+    {
+      "name": "Button",
+      "qualified_name": "Button",
+      "kind": "import",
+      "start_line": 1,
+      "end_line": 1,
+      "signature": "./ui:Button",
+      "parent": null
+    },
+    {
+      "name": "App",
+      "qualified_name": "App",
+      "kind": "function",
+      "start_line": 3,
+      "end_line": 9,
+      "signature": "const App = () =>",
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "Button",
+      "line": 5
+    },
+    {
+      "name": "compute",
+      "line": 5
+    },
+    {
+      "name": "Item",
+      "line": 6
+    },
+    {
+      "name": "App",
+      "line": 11
+    }
+  ]
+}

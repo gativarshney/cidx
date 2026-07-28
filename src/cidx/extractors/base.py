@@ -127,8 +127,14 @@ def node_text(source: bytes, node: Node) -> str:
     return source[node.start_byte : node.end_byte].decode("utf-8", errors="replace")
 
 
-def load_query(language_id: str, filename: str) -> Query:
-    """Compile a ``.scm`` query file shipped in ``cidx/extractors/queries``."""
+def load_query(language_id: str, *filenames: str) -> Query:
+    """Compile ``.scm`` query files shipped in ``cidx/extractors/queries``.
+
+    Multiple filenames are concatenated, so grammar variants can share a core
+    pattern file (TSX = TypeScript core + JSX additions).
+    """
     query_dir = resources.files("cidx.extractors") / "queries"
-    text = (query_dir / filename).read_text(encoding="utf-8")
+    text = "\n".join(
+        (query_dir / filename).read_text(encoding="utf-8") for filename in filenames
+    )
     return Query(get_language(language_id), text)

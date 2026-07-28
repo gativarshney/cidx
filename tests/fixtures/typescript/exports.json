@@ -1,0 +1,64 @@
+{
+  "symbols": [
+    {
+      "name": "publicApi",
+      "qualified_name": "publicApi",
+      "kind": "function",
+      "start_line": 1,
+      "end_line": 1,
+      "signature": "function publicApi(): void",
+      "parent": null
+    },
+    {
+      "name": "VERSION",
+      "qualified_name": "VERSION",
+      "kind": "const",
+      "start_line": 3,
+      "end_line": 3,
+      "signature": null,
+      "parent": null
+    },
+    {
+      "name": "default",
+      "qualified_name": "default",
+      "kind": "class",
+      "start_line": 5,
+      "end_line": 9,
+      "signature": "class",
+      "parent": null
+    },
+    {
+      "name": "run",
+      "qualified_name": "default.run",
+      "kind": "method",
+      "start_line": 6,
+      "end_line": 8,
+      "signature": "run(): void",
+      "parent": "default"
+    },
+    {
+      "name": "aliasB",
+      "qualified_name": "aliasB",
+      "kind": "import",
+      "start_line": 11,
+      "end_line": 11,
+      "signature": "./helpers:helperB",
+      "parent": null
+    },
+    {
+      "name": "helperA",
+      "qualified_name": "helperA",
+      "kind": "import",
+      "start_line": 11,
+      "end_line": 11,
+      "signature": "./helpers:helperA",
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "start",
+      "line": 7
+    }
+  ]
+}

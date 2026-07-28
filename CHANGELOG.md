@@ -10,6 +10,11 @@ once the first release exists. Until then, everything lands under Unreleased.
 
 ### Added
 
+- TypeScript/JavaScript/TSX symbol and reference extractor: functions
+  (including arrow functions bound to consts), classes, methods, class
+  fields, consts, imports, re-exports, and anonymous default exports;
+  references from calls, `new`, decorators, heritage clauses, and uppercase
+  JSX component usages.
 - Python symbol and reference extractor: functions, classes, methods, consts,
   and imports with qualified names, one-line signatures, and 1-based line
   spans; raw references from call sites, decorators, and base classes.
