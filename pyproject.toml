@@ -18,7 +18,9 @@ dependencies = [
     "tree-sitter-javascript>=0.23",
     "tree-sitter-typescript>=0.23",
     "watchdog>=4",
-    "mcp>=1.2",
+    # <2: mcp 2.0.0 breaks FastMCP stdio servers at initialize (reproduced
+    # 2026-07-28); migrate to 2.x deliberately, not via a resolver surprise.
+    "mcp>=1.2,<2",
 ]
 
 [project.optional-dependencies]
