@@ -1,0 +1,23 @@
+{
+  "symbols": [
+    {
+      "name": "Ok",
+      "qualified_name": "Ok",
+      "kind": "class",
+      "start_line": 1,
+      "end_line": 3,
+      "signature": "class Ok",
+      "parent": null
+    },
+    {
+      "name": "good",
+      "qualified_name": "Ok.good",
+      "kind": "method",
+      "start_line": 2,
+      "end_line": 3,
+      "signature": "def good(self) -> None",
+      "parent": "Ok"
+    }
+  ],
+  "references": []
+}

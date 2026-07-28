@@ -1,0 +1,40 @@
+{
+  "symbols": [
+    {
+      "name": "process",
+      "qualified_name": "process",
+      "kind": "function",
+      "start_line": 1,
+      "end_line": 3,
+      "signature": "def process(items)",
+      "parent": null
+    },
+    {
+      "name": "transform",
+      "qualified_name": "transform",
+      "kind": "function",
+      "start_line": 6,
+      "end_line": 7,
+      "signature": "def transform(items)",
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "transform",
+      "line": 2
+    },
+    {
+      "name": "clean",
+      "line": 3
+    },
+    {
+      "name": "normalize",
+      "line": 3
+    },
+    {
+      "name": "str",
+      "line": 7
+    }
+  ]
+}

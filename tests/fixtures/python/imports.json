@@ -1,0 +1,77 @@
+{
+  "symbols": [
+    {
+      "name": "os",
+      "qualified_name": "os",
+      "kind": "import",
+      "start_line": 1,
+      "end_line": 1,
+      "signature": "os",
+      "parent": null
+    },
+    {
+      "name": "os.path",
+      "qualified_name": "os.path",
+      "kind": "import",
+      "start_line": 2,
+      "end_line": 2,
+      "signature": "os.path",
+      "parent": null
+    },
+    {
+      "name": "np",
+      "qualified_name": "np",
+      "kind": "import",
+      "start_line": 3,
+      "end_line": 3,
+      "signature": "numpy",
+      "parent": null
+    },
+    {
+      "name": "Path",
+      "qualified_name": "Path",
+      "kind": "import",
+      "start_line": 4,
+      "end_line": 4,
+      "signature": "pathlib.Path",
+      "parent": null
+    },
+    {
+      "name": "PurePath",
+      "qualified_name": "PurePath",
+      "kind": "import",
+      "start_line": 4,
+      "end_line": 4,
+      "signature": "pathlib.PurePath",
+      "parent": null
+    },
+    {
+      "name": "memoize",
+      "qualified_name": "memoize",
+      "kind": "import",
+      "start_line": 5,
+      "end_line": 5,
+      "signature": "functools.cache",
+      "parent": null
+    },
+    {
+      "name": "sibling",
+      "qualified_name": "sibling",
+      "kind": "import",
+      "start_line": 6,
+      "end_line": 6,
+      "signature": ".sibling",
+      "parent": null
+    },
+    {
+      "name": "helper",
+      "qualified_name": "helper",
+      "kind": "import",
+      "start_line": 7,
+      "end_line": 7,
+      "signature": "..pkg.helper",
+      "parent": null
+    }
+  ],
+  "references": []
+}

@@ -1,0 +1,46 @@
+{
+  "symbols": [
+    {
+      "name": "add",
+      "qualified_name": "add",
+      "kind": "function",
+      "start_line": 4,
+      "end_line": 6,
+      "signature": "def add(a: int, b: int = 0) -> int",
+      "parent": null
+    },
+    {
+      "name": "outer",
+      "qualified_name": "outer",
+      "kind": "function",
+      "start_line": 9,
+      "end_line": 13,
+      "signature": "def outer()",
+      "parent": null
+    },
+    {
+      "name": "inner",
+      "qualified_name": "outer.inner",
+      "kind": "function",
+      "start_line": 10,
+      "end_line": 11,
+      "signature": "def inner(x)",
+      "parent": "outer"
+    },
+    {
+      "name": "fetch",
+      "qualified_name": "fetch",
+      "kind": "function",
+      "start_line": 16,
+      "end_line": 17,
+      "signature": "async def fetch(url: str) -> bytes",
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "download",
+      "line": 17
+    }
+  ]
+}

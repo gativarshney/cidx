@@ -1,0 +1,54 @@
+{
+  "symbols": [
+    {
+      "name": "functools",
+      "qualified_name": "functools",
+      "kind": "import",
+      "start_line": 1,
+      "end_line": 1,
+      "signature": "functools",
+      "parent": null
+    },
+    {
+      "name": "app",
+      "qualified_name": "app",
+      "kind": "import",
+      "start_line": 3,
+      "end_line": 3,
+      "signature": "flask.app",
+      "parent": null
+    },
+    {
+      "name": "cached",
+      "qualified_name": "cached",
+      "kind": "function",
+      "start_line": 7,
+      "end_line": 8,
+      "signature": "def cached()",
+      "parent": null
+    },
+    {
+      "name": "health",
+      "qualified_name": "health",
+      "kind": "function",
+      "start_line": 12,
+      "end_line": 13,
+      "signature": "def health()",
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "cache",
+      "line": 6
+    },
+    {
+      "name": "route",
+      "line": 11
+    },
+    {
+      "name": "ping",
+      "line": 13
+    }
+  ]
+}

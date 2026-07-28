@@ -10,6 +10,10 @@ once the first release exists. Until then, everything lands under Unreleased.
 
 ### Added
 
+- Python symbol and reference extractor: functions, classes, methods, consts,
+  and imports with qualified names, one-line signatures, and 1-based line
+  spans; raw references from call sites, decorators, and base classes.
+  Extraction patterns live in a `.scm` query file shipped with the package.
 - Tree-sitter parsing foundation: language detection for Python, JavaScript,
   TypeScript, and TSX files, plus error-tolerant parsing from bytes. First
   runtime dependencies: `tree-sitter` and the three grammar wheels.

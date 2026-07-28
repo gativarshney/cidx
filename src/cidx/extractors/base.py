@@ -8,13 +8,16 @@ decoding for display is the caller's concern (see ARCHITECTURE.md).
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from functools import cache
+from importlib import resources
 from pathlib import PurePath
+from typing import Literal
 
 import tree_sitter_javascript
 import tree_sitter_python
 import tree_sitter_typescript
-from tree_sitter import Language, Parser, Tree
+from tree_sitter import Language, Node, Parser, Query, Tree
 
 PYTHON = "python"
 JAVASCRIPT = "javascript"
@@ -79,3 +82,53 @@ def parse(source: bytes, language_id: str) -> Tree:
     tree (with error nodes), never an exception.
     """
     return get_parser(language_id).parse(source)
+
+
+SymbolKind = Literal["function", "class", "method", "const", "import"]
+
+
+@dataclass(frozen=True, slots=True)
+class Symbol:
+    """One definition emitted by an extractor.
+
+    Line numbers are 1-based and inclusive. ``parent`` is the qualified name
+    of the enclosing definition, or None at module level. For imports,
+    ``signature`` carries the dotted import target (the resolution breadcrumb
+    used in Phase 6).
+    """
+
+    name: str
+    qualified_name: str
+    kind: SymbolKind
+    start_line: int
+    end_line: int
+    signature: str | None = None
+    parent: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class Reference:
+    """One raw symbol usage at a 1-based line; resolution happens at Phase 6."""
+
+    name: str
+    line: int
+
+
+@dataclass(frozen=True, slots=True)
+class Extraction:
+    """Everything one extractor emits for one file."""
+
+    symbols: tuple[Symbol, ...]
+    references: tuple[Reference, ...]
+
+
+def node_text(source: bytes, node: Node) -> str:
+    """Decode the exact source slice *node* spans (UTF-8, lossy on bad bytes)."""
+    return source[node.start_byte : node.end_byte].decode("utf-8", errors="replace")
+
+
+def load_query(language_id: str, filename: str) -> Query:
+    """Compile a ``.scm`` query file shipped in ``cidx/extractors/queries``."""
+    query_dir = resources.files("cidx.extractors") / "queries"
+    text = (query_dir / filename).read_text(encoding="utf-8")
+    return Query(get_language(language_id), text)

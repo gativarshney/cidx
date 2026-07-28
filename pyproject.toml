@@ -33,9 +33,15 @@ Repository = "https://github.com/gativarshney/cidx"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"cidx.extractors" = ["queries/*.scm"]
+
 [tool.ruff]
 src = ["src", "tests"]
 target-version = "py311"
+# The fixture corpus is test data, not code: it deliberately contains broken
+# syntax, unused imports, and undefined names for the extractors to chew on.
+extend-exclude = ["tests/fixtures"]
 
 [tool.ruff.lint]
 select = [
