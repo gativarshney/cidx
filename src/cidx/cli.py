@@ -68,6 +68,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_common_arguments(check)
 
+    serve = subparsers.add_parser(
+        "serve", help="run the MCP server over stdio, keeping the index fresh"
+    )
+    _add_common_arguments(serve)
+
     return parser
 
 
@@ -95,6 +100,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _run_query(args)
     if args.command == "check":
         return _run_check(args)
+    if args.command == "serve":
+        return _run_serve(args)
     return _run_stats(args)
 
 
@@ -240,6 +247,26 @@ def _run_check(args: argparse.Namespace) -> int:
             print(f"{drift.table}: stale in index: {row}")
     print("drift detected; run `cidx index` to rebuild, and please report this")
     return 1
+
+
+def _run_serve(args: argparse.Namespace) -> int:
+    from cidx.core.watcher import Watcher
+    from cidx.mcp.server import create_server
+
+    repo_root = Path(args.repo).resolve()
+    if not repo_root.is_dir():
+        print(f"error: {repo_root} is not a directory", file=sys.stderr)
+        return 1
+    db_path = repoid.index_path(repo_root)
+    # the watcher's immediate first sweep builds or refreshes the index,
+    # so a cold start still serves (increasingly complete) answers
+    watcher = Watcher(repo_root, db_path)
+    watcher.start()
+    try:
+        create_server(repo_root, db_path).run()
+    finally:
+        watcher.stop()
+    return 0
 
 
 def _open_existing(repo: str) -> Store | None:

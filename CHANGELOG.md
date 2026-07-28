@@ -10,6 +10,10 @@ once the first release exists. Until then, everything lands under Unreleased.
 
 ### Added
 
+- MCP server (`cidx serve`): five read-only tools over stdio —
+  `search_symbols`, `find_definition`, `find_references`, `outline_file`,
+  `repo_map` — with budgeted responses, freshness stamps, and fail-open
+  behavior; the file watcher keeps the index fresh while serving.
 - Ranking and token budgeting: engineered features (match tier, kind,
   popularity, locality, recency) under a weighted linear scorer with untuned
   default weights; responses fit a ~700-token budget with truncation markers,

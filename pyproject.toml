@@ -18,6 +18,7 @@ dependencies = [
     "tree-sitter-javascript>=0.23",
     "tree-sitter-typescript>=0.23",
     "watchdog>=4",
+    "mcp>=1.2",
 ]
 
 [project.optional-dependencies]
