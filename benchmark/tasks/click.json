@@ -1,0 +1,67 @@
+{
+  "repository": "click",
+  "commit": "00e592cea702e0b2caa0dee42489fdb1c22cd845",
+  "comment": "Ground truth verified against the pinned checkout with git grep -n on 2026-07-28. Line windows allow +/-3 for decorator/comment citation styles.",
+  "tasks": [
+    {
+      "id": "click-01-def-context",
+      "split": "dev",
+      "question": "Where is the class `Context` defined? Answer with the repo-relative path and line, formatted as path:line.",
+      "check": {"type": "location", "file": "src/click/core.py", "line_between": [205, 211]}
+    },
+    {
+      "id": "click-02-def-secho",
+      "split": "dev",
+      "question": "Where is the function `secho` defined? Answer with path:line.",
+      "check": {"type": "location", "file": "src/click/termui.py", "line_between": [776, 782]}
+    },
+    {
+      "id": "click-03-def-echo",
+      "split": "dev",
+      "question": "Where is the function `echo` defined? Answer with path:line.",
+      "check": {"type": "location", "file": "src/click/utils.py", "line_between": [249, 255]}
+    },
+    {
+      "id": "click-04-def-paramtype",
+      "split": "dev",
+      "question": "Where is the class `ParamType` defined? Answer with path:line.",
+      "check": {"type": "location", "file": "src/click/types.py", "line_between": [51, 57]}
+    },
+    {
+      "id": "click-05-base-badparameter",
+      "split": "dev",
+      "question": "Which class does `BadParameter` directly extend?",
+      "check": {"type": "regex", "pattern": "\\bUsageError\\b"}
+    },
+    {
+      "id": "click-06-def-clickexception",
+      "split": "dev",
+      "question": "Where is the class `ClickException` defined? Answer with path:line.",
+      "check": {"type": "location", "file": "src/click/exceptions.py", "line_between": [32, 38]}
+    },
+    {
+      "id": "click-07-base-usageerror",
+      "split": "dev",
+      "question": "Which class does `UsageError` directly extend?",
+      "check": {"type": "regex", "pattern": "\\bClickException\\b"}
+    },
+    {
+      "id": "click-08-def-option",
+      "split": "holdout",
+      "question": "Where is the class `Option` defined? Answer with path:line.",
+      "check": {"type": "location", "file": "src/click/core.py", "line_between": [2848, 2854]}
+    },
+    {
+      "id": "click-09-def-get-app-dir",
+      "split": "holdout",
+      "question": "Where is the function `get_app_dir` defined? Answer with path:line.",
+      "check": {"type": "location", "file": "src/click/utils.py", "line_between": [481, 487]}
+    },
+    {
+      "id": "click-10-def-confirm",
+      "split": "holdout",
+      "question": "Where is the function `confirm` defined? Answer with path:line.",
+      "check": {"type": "location", "file": "src/click/termui.py", "line_between": [285, 291]}
+    }
+  ]
+}

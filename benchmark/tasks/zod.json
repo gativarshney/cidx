@@ -1,0 +1,37 @@
+{
+  "repository": "zod",
+  "commit": "912f0f51b0ced654d0069741e7160834dca742ee",
+  "comment": "Ground truth verified against the pinned checkout with git grep -n on 2026-07-28.",
+  "tasks": [
+    {
+      "id": "zod-01-def-zoderror",
+      "split": "dev",
+      "question": "Where is the class `ZodError` defined in the v3 sources? Answer with path:line.",
+      "check": {"type": "location", "file": "packages/zod/src/v3/ZodError.ts", "line_between": [191, 197]}
+    },
+    {
+      "id": "zod-02-def-zodtype",
+      "split": "dev",
+      "question": "Where is the abstract class `ZodType` defined in the v3 sources? Answer with path:line.",
+      "check": {"type": "location", "file": "packages/zod/src/v3/types.ts", "line_between": [155, 161]}
+    },
+    {
+      "id": "zod-03-base-zodstring",
+      "split": "dev",
+      "question": "Which class does the v3 `ZodString` directly extend?",
+      "check": {"type": "regex", "pattern": "\\bZodType\\b"}
+    },
+    {
+      "id": "zod-04-def-zodstring",
+      "split": "holdout",
+      "question": "Where is the class `ZodString` defined in the v3 sources? Answer with path:line.",
+      "check": {"type": "location", "file": "packages/zod/src/v3/types.ts", "line_between": [728, 734]}
+    },
+    {
+      "id": "zod-05-def-v4-string",
+      "split": "holdout",
+      "question": "Where is the function `string` defined in the v4 classic schemas? Answer with path:line.",
+      "check": {"type": "location", "file": "packages/zod/src/v4/classic/schemas.ts", "line_between": [564, 572]}
+    }
+  ]
+}

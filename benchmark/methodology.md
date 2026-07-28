@@ -33,8 +33,9 @@ because a contestant scores badly on it.
 ## Tasks
 
 - 30 to 50 tasks against pinned public repositories, each with
-  machine-checkable ground truth in YAML (expected file:line spans, symbol
-  names, or answer regexes — never free-text judged by a model).
+  machine-checkable ground truth in JSON (expected file:line spans, symbol
+  names, or answer regexes — never free-text judged by a model). JSON keeps
+  the benchmark tooling dependency-free (owner decision, 2026-07-28).
 - Task shapes: where is X defined; who uses Y; what does file Z contain;
   which module implements behavior W.
 - **Dev/holdout split**: tasks are split once, before any tuning. Ranking

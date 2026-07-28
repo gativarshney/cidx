@@ -1,0 +1,61 @@
+{
+  "repository": "flask",
+  "commit": "36e4a824f340fdee7ed50937ba8e7f6bc7d17f81",
+  "comment": "Ground truth verified against the pinned checkout with git grep -n on 2026-07-28.",
+  "tasks": [
+    {
+      "id": "flask-01-def-flask",
+      "split": "dev",
+      "question": "Where is the class `Flask` defined? Answer with path:line.",
+      "check": {"type": "location", "file": "src/flask/app.py", "line_between": [106, 112]}
+    },
+    {
+      "id": "flask-02-def-jsonify",
+      "split": "dev",
+      "question": "Where is the function `jsonify` defined? Answer with path:line.",
+      "check": {"type": "location", "file": "src/flask/json/__init__.py", "line_between": [135, 141]}
+    },
+    {
+      "id": "flask-03-def-url-for",
+      "split": "dev",
+      "question": "Where is the function `url_for` defined? Answer with path:line.",
+      "check": {"type": "location", "file": "src/flask/helpers.py", "line_between": [197, 203]}
+    },
+    {
+      "id": "flask-04-def-current-app",
+      "split": "dev",
+      "question": "In which file is `current_app` defined?",
+      "check": {"type": "location", "file": "src/flask/globals.py"}
+    },
+    {
+      "id": "flask-05-multi-blueprint",
+      "split": "dev",
+      "question": "A class named `Blueprint` is defined in two different files in this repository. Name both files.",
+      "check": {"type": "contains_all", "values": ["src/flask/blueprints.py", "src/flask/sansio/blueprints.py"]}
+    },
+    {
+      "id": "flask-06-base-flask",
+      "split": "dev",
+      "question": "Which class does `Flask` directly extend?",
+      "check": {"type": "regex", "pattern": "\\bApp\\b"}
+    },
+    {
+      "id": "flask-07-def-send-file",
+      "split": "holdout",
+      "question": "Where is the function `send_file` defined? Answer with path:line.",
+      "check": {"type": "location", "file": "src/flask/helpers.py", "line_between": [414, 420]}
+    },
+    {
+      "id": "flask-08-def-response",
+      "split": "holdout",
+      "question": "Where is the class `Response` defined in this repository? Answer with path:line.",
+      "check": {"type": "location", "file": "src/flask/wrappers.py", "line_between": [219, 225]}
+    },
+    {
+      "id": "flask-09-def-get-flashed",
+      "split": "holdout",
+      "question": "Where is the function `get_flashed_messages` defined? Answer with path:line.",
+      "check": {"type": "location", "file": "src/flask/helpers.py", "line_between": [357, 363]}
+    }
+  ]
+}

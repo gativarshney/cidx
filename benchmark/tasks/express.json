@@ -1,0 +1,55 @@
+{
+  "repository": "express",
+  "commit": "a3714473feb3d2908add734d340e7755fd85e0a3",
+  "comment": "Ground truth verified against the pinned checkout with git grep -n on 2026-07-28.",
+  "tasks": [
+    {
+      "id": "express-01-def-createapplication",
+      "split": "dev",
+      "question": "Where is the function `createApplication` defined? Answer with path:line.",
+      "check": {"type": "location", "file": "lib/express.js", "line_between": [33, 39]}
+    },
+    {
+      "id": "express-02-def-res-send",
+      "split": "dev",
+      "question": "Where is `res.send` implemented? Answer with path:line.",
+      "check": {"type": "location", "file": "lib/response.js", "line_between": [123, 129]}
+    },
+    {
+      "id": "express-03-file-view",
+      "split": "dev",
+      "question": "Which file implements the `View` class?",
+      "check": {"type": "location", "file": "lib/view.js"}
+    },
+    {
+      "id": "express-04-def-app-listen",
+      "split": "dev",
+      "question": "Where is `app.listen` implemented? Answer with path:line.",
+      "check": {"type": "location", "file": "lib/application.js", "line_between": [595, 601]}
+    },
+    {
+      "id": "express-05-usage-view",
+      "split": "dev",
+      "question": "Which file under lib/ constructs a `View` instance with `new View(...)`?",
+      "check": {"type": "contains_all", "values": ["lib/application.js"]}
+    },
+    {
+      "id": "express-06-def-res-json",
+      "split": "holdout",
+      "question": "Where is `res.json` implemented? Answer with path:line.",
+      "check": {"type": "location", "file": "lib/response.js", "line_between": [231, 237]}
+    },
+    {
+      "id": "express-07-def-res-render",
+      "split": "holdout",
+      "question": "Where is `res.render` implemented? Answer with path:line.",
+      "check": {"type": "location", "file": "lib/response.js", "line_between": [894, 900]}
+    },
+    {
+      "id": "express-08-file-router-export",
+      "split": "holdout",
+      "question": "In which file is `Router` re-exported (as `exports.Router`)?",
+      "check": {"type": "location", "file": "lib/express.js"}
+    }
+  ]
+}
