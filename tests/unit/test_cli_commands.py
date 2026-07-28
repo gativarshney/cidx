@@ -123,6 +123,48 @@ class TestQueryCommand:
         assert "cidx index" in err
 
 
+class TestQueryModes:
+    @pytest.fixture(autouse=True)
+    def indexed(
+        self,
+        repo: Path,
+        isolated_cache: Path,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        (repo / "caller.py").write_bytes(b"from app import Repo\n\nRepo().save()\n")
+        main(["index", "--repo", str(repo)])
+        capsys.readouterr()
+
+    def test_references_mode_lists_usage_sites(
+        self, repo: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        assert main(["query", "save", "--references", "--repo", str(repo)]) == 0
+        out = capsys.readouterr().out
+        assert "caller.py:3" in out
+        assert "-> Repo.save (app.py)" in out
+
+    def test_outline_mode_lists_file_symbols(
+        self, repo: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        assert main(["query", "app.py", "--outline", "--repo", str(repo)]) == 0
+        out = capsys.readouterr().out
+        assert "Repo" in out
+        assert "save" in out
+
+    def test_repo_map_mode_needs_no_name(
+        self, repo: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        assert main(["query", "--repo-map", "--repo", str(repo), "--json"]) == 0
+        entries = json.loads(capsys.readouterr().out)
+        assert [e["path"] for e in entries] == ["app.py", "caller.py"]
+
+    def test_missing_name_without_repo_map_errors(
+        self, repo: Path, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        assert main(["query", "--repo", str(repo)]) == 2
+        assert "name is required" in capsys.readouterr().err
+
+
 class TestStatsCommand:
     def test_reports_counts_and_location(
         self,

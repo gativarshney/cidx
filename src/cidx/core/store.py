@@ -55,6 +55,11 @@ class Store:
         _ensure_schema(connection)
         return cls(connection)
 
+    @property
+    def connection(self) -> sqlite3.Connection:
+        """The underlying connection, for the query layer's read-only SQL."""
+        return self._connection
+
     def close(self) -> None:
         self._connection.close()
 
