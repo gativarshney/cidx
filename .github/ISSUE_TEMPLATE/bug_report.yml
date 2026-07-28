@@ -1,0 +1,65 @@
+name: Bug report
+description: Something misbehaves, crashes, or returns wrong results.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. cidx is pre-alpha; precise reports directly
+        become test cases.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you do, and what went wrong?
+      placeholder: I ran `cidx ...` and ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: >
+        Exact commands, and if possible a minimal repository or file that
+        triggers the problem. Wrong or stale index results are especially
+        valuable — they become convergence test cases.
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: cidx-version
+    attributes:
+      label: cidx version
+      description: Output of `cidx --version`.
+      placeholder: cidx 0.1.0.dev0
+    validations:
+      required: true
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: "3.12.4"
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: Windows 11 / Ubuntu 24.04 / macOS 15
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or output
+      description: Any error output, verbatim. This is auto-formatted as code.
+      render: shell

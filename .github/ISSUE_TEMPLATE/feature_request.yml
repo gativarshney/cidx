@@ -1,0 +1,40 @@
+name: Feature request
+description: Propose an addition or improvement within the v1 scope.
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        cidx has a deliberately fixed v1 scope. Ideas on the
+        [do-not-build list](https://github.com/gativarshney/cidx/blob/main/AGENTS.md#do-not-build-list)
+        (embeddings, additional languages, write tools, HTTP transport, editor
+        plugins, call graphs, multi-repo, dashboards, LSP) are already decided
+        against for v1, with reasons in
+        [DECISIONS.md](https://github.com/gativarshney/cidx/blob/main/DECISIONS.md).
+  - type: checkboxes
+    id: scope-check
+    attributes:
+      label: Scope check
+      options:
+        - label: I checked the do-not-build list and this request is not on it.
+          required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem does this solve? What happens today without it?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should cidx do, and where does it fit (CLI, MCP tool, indexing, ranking)?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Including "do nothing" — why is that not good enough?
