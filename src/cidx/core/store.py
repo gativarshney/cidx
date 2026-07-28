@@ -175,6 +175,12 @@ class Store:
         ).fetchall()
         return [SymbolRow(**row) for row in rows]
 
+    def indexed_paths(self) -> set[str]:
+        """Every file path currently in the index."""
+        return {
+            row["path"] for row in self._connection.execute("SELECT path FROM files")
+        }
+
     def snapshot(self) -> dict[str, set[tuple]]:
         """Value-level row sets for convergence comparison.
 
