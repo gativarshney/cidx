@@ -22,6 +22,12 @@ once the first release exists. Until then, everything lands under Unreleased.
 
 ### Added
 
+- Benchmark harness: pinned dataset manifest with `scripts/clone_datasets.py`,
+  32 machine-checkable tasks in JSON (dev/holdout split), a scripted agent
+  loop with a recorded-response stub model, contestant adapters (grep
+  baseline, cidx), and a scorer that recomputes every metric from raw JSONL
+  logs alone. Governed by `benchmark/methodology.md`. No results published
+  yet.
 - MCP server (`cidx serve`): five read-only tools over stdio —
   `search_symbols`, `find_definition`, `find_references`, `outline_file`,
   `repo_map` — with budgeted responses, freshness stamps, and fail-open

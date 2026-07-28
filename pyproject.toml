@@ -45,6 +45,8 @@ cidx = "cidx.cli:main"
 
 [project.urls]
 Repository = "https://github.com/gativarshney/cidx"
+Issues = "https://github.com/gativarshney/cidx/issues"
+Changelog = "https://github.com/gativarshney/cidx/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["src"]

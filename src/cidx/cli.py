@@ -71,7 +71,12 @@ def build_parser() -> argparse.ArgumentParser:
     serve = subparsers.add_parser(
         "serve", help="run the MCP server over stdio, keeping the index fresh"
     )
-    _add_common_arguments(serve)
+    # serve speaks MCP on stdout, so it takes no --json flag
+    serve.add_argument(
+        "--repo",
+        default=".",
+        help="repository root (default: current directory)",
+    )
 
     return parser
 

@@ -64,8 +64,7 @@ tests/
   convergence/  property-based suite (the proof of the invariant)
   integration/  real server over stdio
   fixtures/
-scripts/        clone_datasets.py, bench helpers, release helpers
-docs/           deep-dive.md and future docs
+scripts/        clone_datasets.py, run_benchmark.py, release helpers
 ```
 
 ## Components
