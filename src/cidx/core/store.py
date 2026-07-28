@@ -273,20 +273,39 @@ class Store:
 
 
 def _ensure_schema(connection: sqlite3.Connection) -> None:
-    """Create the schema, or rebuild it when the stored version disagrees."""
-    stored = _stored_schema_version(connection)
-    if stored == SCHEMA_VERSION:
+    """Create the schema, or rebuild it when the stored version disagrees.
+
+    Concurrency-safe: creation runs under BEGIN IMMEDIATE with the version
+    re-checked inside the lock, so two connections opening a fresh database
+    at once cannot both create it (the loser sees the winner's schema).
+    """
+    if _stored_schema_version(connection) == SCHEMA_VERSION:
         return
-    connection.executescript(DROP_SQL)
-    connection.executescript(SCHEMA_SQL)
-    connection.execute(
-        "INSERT INTO meta (key, value) VALUES ('schema_version', ?)",
-        (str(SCHEMA_VERSION),),
-    )
-    connection.execute(
-        "INSERT INTO meta (key, value) VALUES ('engine_version', ?)",
-        (version("cidx"),),
-    )
+    connection.execute("BEGIN IMMEDIATE")
+    try:
+        if _stored_schema_version(connection) != SCHEMA_VERSION:
+            for statement in _statements(DROP_SQL):
+                connection.execute(statement)
+            for statement in _statements(SCHEMA_SQL):
+                connection.execute(statement)
+            connection.execute(
+                "INSERT INTO meta (key, value) VALUES ('schema_version', ?)",
+                (str(SCHEMA_VERSION),),
+            )
+            connection.execute(
+                "INSERT INTO meta (key, value) VALUES ('engine_version', ?)",
+                (version("cidx"),),
+            )
+        connection.execute("COMMIT")
+    except BaseException:
+        connection.execute("ROLLBACK")
+        raise
+
+
+def _statements(script: str) -> list[str]:
+    """Individual statements, so DDL can run inside an explicit transaction
+    (executescript would auto-commit and break the concurrency lock)."""
+    return [part.strip() for part in script.split(";") if part.strip()]
 
 
 def _stored_schema_version(connection: sqlite3.Connection) -> int | None:

@@ -10,6 +10,16 @@ once the first release exists. Until then, everything lands under Unreleased.
 
 ### Added
 
+- Ranking and token budgeting: engineered features (match tier, kind,
+  popularity, locality, recency) under a weighted linear scorer with untuned
+  default weights; responses fit a ~700-token budget with truncation markers,
+  freshness stamps, and fail-open grep recommendations.
+- Query engine: reference resolution (same-file, import-following, unique
+  global name) with confidence tags; `cidx query` gains `--references`,
+  `--outline`, and `--repo-map` modes; `cidx check` verifies the index
+  against a cold rebuild and reports drift exactly.
+- File watcher: debounced, coalescing, git-aware incremental updates with a
+  reconciliation sweep safety net.
 - Storage layer: SQLite index (WAL, FTS5) with one-transaction-per-file
   updates, stored outside the repository under the per-user cache directory.
 - `cidx index`, `cidx query`, and `cidx stats` commands, each with `--json`.
