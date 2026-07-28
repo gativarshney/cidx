@@ -54,7 +54,7 @@ src/cidx/
   mcp/          server.py (5 tool definitions, response shaping)
   cli.py        index / query / serve / check / stats
 benchmark/
-  tasks/        one YAML per pinned repo (dev + holdout split)
+  tasks/        one JSON file per pinned repo (dev + holdout split; ADR-011)
   runners/      agent loop (provider-pluggable model client), stub model, logging
   datasets/     pinned-repo manifests (URL + commit SHA)
   results/      YYYY-MM/ raw JSONL + generated tables
@@ -129,7 +129,7 @@ CREATE INDEX idx_refs_symbol ON refs(resolved_symbol_id);
 
 **CLI.** `argparse`, thin dispatcher over the same library calls: `cidx index`, `cidx query`, `cidx serve`, `cidx check`, `cidx stats`, each with `--json`. The CLI must contain no logic of its own, or the CLI and MCP paths drift.
 
-**Benchmark subsystem (`benchmark/`).** Pinned repos (manifest: URL + exact commit) cloned by `scripts/clone_datasets.py`; 30 to 50 tasks with machine-checkable ground truth in YAML, split dev/holdout; contestants as adapters (grep baseline, cidx, Serena, claude-context, codanna, ChunkHound) run by a scripted agent loop with identical model, prompt, and tasks; 3 to 5 repetitions, medians with IQR. Metrics: task success, total tokens, wasted file reads (opened but never cited), wall time, and the headline, cost per solved task. Raw JSONL logs are published; the scorer recomputes every number from logs alone. A stub model (recorded responses) makes development free; paid runs are budget-capped. Full rules: `benchmark/methodology.md`.
+**Benchmark subsystem (`benchmark/`).** Pinned repos (manifest: URL + exact commit) cloned by `scripts/clone_datasets.py`; 30 to 50 tasks with machine-checkable ground truth in JSON (ADR-011), split dev/holdout; contestants as adapters (grep baseline, cidx, Serena, claude-context, codanna, ChunkHound) run by a scripted agent loop with identical model, prompt, and tasks; 3 to 5 repetitions, medians with IQR. Metrics: task success, total tokens, wasted file reads (opened but never cited), wall time, and the headline, cost per solved task. Raw JSONL logs are published; the scorer recomputes every number from logs alone. A stub model (recorded responses) makes development free; paid runs are budget-capped. Full rules: `benchmark/methodology.md`.
 
 ## Key data flows
 
@@ -154,7 +154,7 @@ agent question -> model picks a cidx tool -> JSON-RPC over stdio
 Benchmark path:
 
 ```
-tasks.yaml + pinned repos -> runner (per contestant, N reps)
+task JSON + pinned repos -> runner (per contestant, N reps)
   -> raw JSONL logs -> scorer (recomputes all metrics)
   -> league table -> README + published logs
 ```

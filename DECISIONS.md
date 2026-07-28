@@ -63,3 +63,9 @@ Consequences: the PR history becomes a public record of review judgment, and the
 Context: infrastructure norms in 2026 favor permissive licenses with a patent grant; benchmark results should be maximally citable.
 Decision: Apache-2.0 for all code; benchmark result data additionally CC-BY-4.0. No CLA; DCO at most, later, if outside contributions grow.
 Consequences: company-compatible, contribution-friendly, citation-friendly. Trademark and incorporation questions are explicitly deferred until there is traction worth protecting.
+
+## ADR-011: Benchmark task definitions are JSON, not YAML (2026-07-28, accepted)
+
+Context: ARCHITECTURE.md originally specified benchmark tasks as YAML files. Parsing YAML requires PyYAML, which sits outside the hard dependency cap in AGENTS.md (runtime: tree-sitter + grammar wheels, watchdog, mcp; dev: pytest, hypothesis, ruff) — and that cap requires an ADR plus owner approval before any addition. Benchmark task files are primarily machine-read; YAML's human-readability advantage is marginal for them.
+Decision: benchmark task definitions, dataset manifests, and stub recordings are JSON, parsed with the standard library. PyYAML is rejected: no new dependency for benchmark-only tooling, preserving the zero-dependency philosophy that the benchmark harness shares with the engine. ARCHITECTURE.md's task-format references are updated to JSON in the same change.
+Consequences: the benchmark tooling runs anywhere Python runs, with nothing to install; task files lose YAML comments (a `comment` field substitutes); competitor adapter authors need only the stdlib to read the suite.
