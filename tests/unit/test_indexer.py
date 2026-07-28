@@ -74,6 +74,23 @@ class TestIndexRepository:
         indexer.index_repository(repo, store)
         assert store.stats() == first
 
+    def test_reindex_reconciles_deleted_files(self, repo: Path, store: Store) -> None:
+        indexer.index_repository(repo, store)
+        (repo / "src" / "app.py").unlink()
+        result = indexer.index_repository(repo, store)
+        assert result.removed == 1
+        assert store.file_record("src/app.py") is None
+
+    def test_reindex_reconciles_files_grown_past_the_cap(
+        self, repo: Path, store: Store
+    ) -> None:
+        indexer.index_repository(repo, store)
+        (repo / "src" / "app.py").write_bytes(b"# " + b"x" * 2_000_000)
+        result = indexer.index_repository(repo, store)
+        assert result.skipped_large == 1
+        assert result.removed == 1
+        assert store.file_record("src/app.py") is None
+
     def test_fallback_walk_skips_junk_directories(
         self, repo: Path, store: Store
     ) -> None:
@@ -96,3 +113,20 @@ class TestGitignore:
         assert result.indexed == 2
         assert store.file_record("src/generated.py") is None
         assert store.file_record("src/app.py") is not None
+
+    def test_reindex_reconciles_newly_gitignored_files(
+        self, repo: Path, store: Store
+    ) -> None:
+        """Regression: query found stale symbols while check reported drift."""
+        subprocess.run(
+            [GIT, "init", "--quiet", str(repo)], check=True, capture_output=True
+        )
+        indexer.index_repository(repo, store)
+        assert store.lookup_exact("helper")  # indexed and queryable
+        (repo / ".gitignore").write_text("src/app.py\n", encoding="utf-8")
+        result = indexer.index_repository(repo, store)
+        assert result.removed == 1
+        assert store.lookup_exact("helper") == []
+        from cidx.core import incremental
+
+        assert incremental.check_drift(repo, store) == []

@@ -123,6 +123,7 @@ def _run_index(args: argparse.Namespace) -> int:
                     "indexed": result.indexed,
                     "skipped_large": result.skipped_large,
                     "failed": result.failed,
+                    "removed": result.removed,
                     "symbols": counts["symbols"],
                     "refs": counts["refs"],
                     "seconds": round(elapsed, 3),
@@ -134,7 +135,7 @@ def _run_index(args: argparse.Namespace) -> int:
         print(
             f"indexed {result.indexed} files"
             f" ({result.skipped_large} skipped as too large,"
-            f" {result.failed} unreadable)"
+            f" {result.failed} unreadable, {result.removed} removed as stale)"
             f" -> {counts['symbols']} symbols, {counts['refs']} refs"
             f" in {elapsed:.2f}s"
         )

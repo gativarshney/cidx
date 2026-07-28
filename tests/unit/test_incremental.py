@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+import shutil
+import subprocess
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -106,6 +108,45 @@ class TestRefreshPath:
         (repo / "a.py").rename(repo / "a.txt")
         assert incremental.refresh_path(store, repo, "a.py") == "removed"
         assert incremental.refresh_path(store, repo, "a.txt") == "absent"
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git not on PATH")
+class TestIgnoreParityWithDiscovery:
+    """Regression: refresh_path must never index what discovery excludes."""
+
+    def test_gitignored_path_is_refused_by_the_engine(
+        self, repo: Path, store: Store
+    ) -> None:
+        subprocess.run(
+            ["git", "init", "--quiet", str(repo)], check=True, capture_output=True
+        )
+        (repo / ".gitignore").write_text("generated/\n", encoding="utf-8")
+        (repo / "generated").mkdir()
+        (repo / "generated" / "gen.py").write_bytes(PY_ONE)
+        assert incremental.refresh_path(store, repo, "generated/gen.py") == "absent"
+        assert store.stats()["files"] == 0
+        assert incremental.check_drift(repo, store) == []
+
+    def test_newly_ignored_indexed_file_is_removed_on_refresh(
+        self, repo: Path, store: Store
+    ) -> None:
+        subprocess.run(
+            ["git", "init", "--quiet", str(repo)], check=True, capture_output=True
+        )
+        (repo / "a.py").write_bytes(PY_ONE)
+        incremental.refresh_path(store, repo, "a.py")
+        (repo / ".gitignore").write_text("a.py\n", encoding="utf-8")
+        assert incremental.refresh_path(store, repo, "a.py") == "removed"
+        assert incremental.check_drift(repo, store) == []
+
+    def test_junk_directory_paths_are_refused_without_git(
+        self, repo: Path, store: Store
+    ) -> None:
+        junk = repo / "node_modules"
+        junk.mkdir()
+        (junk / "dep.py").write_bytes(PY_ONE)
+        assert incremental.refresh_path(store, repo, "node_modules/dep.py") == "absent"
+        assert store.stats()["files"] == 0
 
 
 class TestCheckDrift:

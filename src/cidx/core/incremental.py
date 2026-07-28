@@ -36,11 +36,14 @@ def refresh_path(
     dropped), or ``absent`` (nothing on disk and nothing indexed).
     """
     rel = Path(relative_path).as_posix()
-    absolute = Path(root) / rel
+    root_path = Path(root)
+    absolute = root_path / rel
     known = store.file_record(rel)
 
     data: bytes | None = None
     language_id = base.detect_language(absolute)
+    if language_id is not None and indexer.is_ignored(root_path, rel):
+        language_id = None  # discovery would never list it: treat as gone
     if language_id is not None:
         try:
             stat = absolute.stat()

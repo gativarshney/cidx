@@ -16,7 +16,6 @@ lists: fast path for speed, slow path for truth.
 from __future__ import annotations
 
 import queue
-import subprocess
 import threading
 import time
 from pathlib import Path
@@ -114,16 +113,13 @@ class Watcher:
                 now = time.monotonic()
                 ready = [path for path, due in pending.items() if due <= now]
                 if ready:
-                    ignored = _git_ignored(self._root, ready)
                     for path in ready:
                         del pending[path]
-                        if path in ignored:
-                            store.remove_file(path)
-                            store.resolve_references()
-                        else:
-                            incremental.refresh_path(
-                                store, self._root, path, self._max_file_bytes
-                            )
+                        # gitignored paths are refused by the engine itself
+                        # (indexer.is_ignored inside refresh_path)
+                        incremental.refresh_path(
+                            store, self._root, path, self._max_file_bytes
+                        )
                 if now >= next_sweep:
                     self._sweep(store)
                     next_sweep = time.monotonic() + self._sweep_interval
@@ -145,24 +141,3 @@ class Watcher:
         # even an all-unchanged sweep re-resolves: hash short-circuits skip
         # resolution, and truth includes resolved targets
         store.resolve_references()
-
-
-def _git_ignored(root: Path, paths: list[str]) -> set[str]:
-    """The subset of *paths* that git ignores; empty without a git repo."""
-    if not (root / ".git").exists():
-        return set()
-    stdin = b"".join(path.encode("utf-8") + b"\0" for path in paths)
-    try:
-        completed = subprocess.run(
-            ["git", "check-ignore", "--stdin", "-z"],
-            cwd=root,
-            input=stdin,
-            capture_output=True,
-            timeout=30,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return set()
-    if completed.returncode not in (0, 1):  # 1 just means "none ignored"
-        return set()
-    output = completed.stdout.decode("utf-8", errors="replace")
-    return {entry for entry in output.split("\0") if entry}
