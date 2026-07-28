@@ -1,6 +1,6 @@
 # ARCHITECTURE.md
 
-The technical shape of cidx. This file is the condensed, authoritative version of the full design study (kept in `docs/deep-dive.md`). If code and this file disagree, fix one of them in the same PR.
+The technical shape of cidx, condensed and authoritative. If code and this file disagree, fix one of them in the same change.
 
 ## System overview
 
@@ -47,8 +47,8 @@ Two consumers (CLI, MCP) call the same library functions. Neither contains logic
 
 ```
 src/cidx/
-  core/         store.py (SQLite), schema.py, hashing.py,
-                incremental.py, watcher.py, repoid.py
+  core/         store.py (SQLite), schema.py, hashing.py, indexer.py,
+                incremental.py, resolve.py, query.py, watcher.py, repoid.py
   extractors/   base.py, python.py, typescript.py, queries/*.scm
   ranking/      features.py, scorer.py, budget.py
   mcp/          server.py (5 tool definitions, response shaping)

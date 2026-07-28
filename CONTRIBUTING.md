@@ -24,7 +24,7 @@ practical summary.
 
 1. Open or comment on an issue first for anything non-trivial, so the approach
    is agreed before you write code.
-2. Branch from `main`: `feat/…`, `fix/…`, `test/…`, `docs/…`, `bench/…`, or
+2. Branch from `main`: `feat/…`, `fix/…`, `docs/…`, `bench/…`, or
    `chore/…`. Never commit to `main` directly.
 3. Use [conventional commits](https://www.conventionalcommits.org/):
    `feat:`, `fix:`, `test:`, `docs:`, `bench:`, `chore:`.

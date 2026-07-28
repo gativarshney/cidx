@@ -1,5 +1,9 @@
 # cidx
 
+[![CI](https://github.com/gativarshney/cidx/actions/workflows/ci.yml/badge.svg)](https://github.com/gativarshney/cidx/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+![Python 3.11–3.13](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
+
 A zero-config local code index for AI coding agents, and a neutral benchmark for measuring what code-retrieval tools actually save you.
 
 **Status: pre-alpha, building in public. The engine is feature-complete for v1; benchmark results are pending real model runs; no PyPI release yet.**
@@ -70,6 +74,23 @@ Measured 2026-07-28 on a mid-range Windows 11 laptop (Python 3.13), against a sy
 | Query p95: outline / repo_map | < 50 ms | **5.3 ms / 20.2 ms** |
 
 Test suite: **244 tests** (golden-file extractor tests, the property-based convergence suite, MCP-over-stdio integration tests), green on CI across {Ubuntu, macOS, Windows} × {Python 3.11, 3.12, 3.13}.
+
+## Known limitations (v1, stated on purpose)
+
+- **TypeScript type-level declarations are not indexed**: `interface`, `type`
+  aliases, and `enum` have no symbol kind in the v1 schema. Value-level code
+  (functions, classes, methods, consts, imports) is fully covered.
+- **CommonJS exports are not tracked as bindings** (`module.exports = {...}`);
+  `require(...)` calls do appear as references.
+- **No semantic or conceptual search** — by design (ADR-007): retrieval is
+  structural (names, references, structure), so "where is auth handled?"
+  style questions are out of scope until the benchmark proves they matter.
+- **Reference resolution has no type checker.** Confidence tags (`exact`,
+  `import`, `name-only`) say how each reference was resolved; precision per
+  tier gets measured by the benchmark, not promised.
+- An index can be momentarily stale between a save and the watcher's update
+  (~100 ms) — every response carries an `index_age_ms` freshness stamp, and
+  `cidx check` can prove convergence at any time.
 
 ## Benchmark
 

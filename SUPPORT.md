@@ -20,6 +20,9 @@ first release.
 
 ## Security
 
-There is no code that runs against untrusted input yet. Once the MCP server
-exists, security reports should be sent by email to the maintainer rather than
-filed as public issues; this section will be updated with details at that point.
+cidx is read-only by design: the MCP tools and CLI never write to, execute,
+or modify an indexed repository, which is the primary containment for
+hostile repository content. If you believe you have found a security issue,
+please report it privately via GitHub's
+[private vulnerability reporting](https://github.com/gativarshney/cidx/security/advisories/new)
+rather than a public issue.

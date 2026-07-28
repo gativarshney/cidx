@@ -8,6 +8,18 @@ once the first release exists. Until then, everything lands under Unreleased.
 
 ## [Unreleased]
 
+### Fixed
+
+- `cidx index` now reconciles: rows for files that were deleted, renamed,
+  newly gitignored, or grew past the size cap are removed on reindex instead
+  of lingering (previously `cidx query` served them while `cidx check`
+  correctly reported drift).
+- The incremental engine refuses paths that discovery would exclude
+  (gitignored files, junk directories), so a watcher event can never index
+  what a cold rebuild would not.
+- Pinned `tree-sitter < 0.26` (heap corruption under repeated queries) and
+  `mcp < 2` (2.0.0 breaks FastMCP stdio servers at initialize).
+
 ### Added
 
 - MCP server (`cidx serve`): five read-only tools over stdio —

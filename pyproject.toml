@@ -10,6 +10,16 @@ readme = "README.md"
 license = "Apache-2.0"
 authors = [{ name = "Gati Varshney" }]
 requires-python = ">=3.11"
+keywords = ["mcp", "code-index", "tree-sitter", "coding-agents", "code-search"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development",
+]
 dependencies = [
     # <0.26: the 0.26.0 runtime heap-corrupts (0xC0000374) under repeated
     # QueryCursor use with current grammar wheels; 0.25.x is stable.
