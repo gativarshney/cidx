@@ -73,7 +73,7 @@ Measured 2026-07-28 on a mid-range Windows 11 laptop (Python 3.13), against a sy
 | Query p95: fuzzy search (FTS) | < 50 ms | **22.1 ms** |
 | Query p95: outline / repo_map | < 50 ms | **5.3 ms / 20.2 ms** |
 
-Test suite: **244 tests** (golden-file extractor tests, the property-based convergence suite, MCP-over-stdio integration tests), green on CI across {Ubuntu, macOS, Windows} × {Python 3.11, 3.12, 3.13}.
+Test suite: **241 tests** (golden-file extractor tests, the property-based convergence suite, MCP-over-stdio integration tests), green on CI across {Ubuntu, macOS, Windows} × {Python 3.11, 3.12, 3.13}.
 
 ## Known limitations (v1, stated on purpose)
 
