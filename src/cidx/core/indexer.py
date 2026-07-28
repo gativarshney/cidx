@@ -77,7 +77,7 @@ def index_repository(
             language_id,
             hashing.content_hash(source),
             stat.st_mtime,
-            _extract(source, language_id),
+            extract_source(source, language_id),
         )
         indexed += 1
     return IndexResult(indexed=indexed, skipped_large=skipped_large, failed=failed)
@@ -122,7 +122,8 @@ def _walk(root: Path) -> Iterator[Path]:
             yield entry
 
 
-def _extract(source: bytes, language_id: str) -> Extraction:
+def extract_source(source: bytes, language_id: str) -> Extraction:
+    """Dispatch to the right extractor; shared by cold and incremental paths."""
     if language_id == base.PYTHON:
         return python.extract(source)
     return typescript.extract(source, language_id)

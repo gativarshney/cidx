@@ -175,6 +175,37 @@ class Store:
         ).fetchall()
         return [SymbolRow(**row) for row in rows]
 
+    def snapshot(self) -> dict[str, set[tuple]]:
+        """Value-level row sets for convergence comparison.
+
+        Ids and timestamps are excluded on purpose: two databases describing
+        the same repository state must produce equal snapshots.
+        """
+        connection = self._connection
+        files = {
+            (row["path"], row["language"], row["content_hash"])
+            for row in connection.execute(
+                "SELECT path, language, content_hash FROM files"
+            )
+        }
+        symbols = {
+            tuple(row)
+            for row in connection.execute(
+                "SELECT f.path, s.name, s.qualified_name, s.kind, s.start_line,"
+                " s.end_line, s.signature, p.qualified_name"
+                " FROM symbols s JOIN files f ON f.id = s.file_id"
+                " LEFT JOIN symbols p ON p.id = s.parent_id"
+            )
+        }
+        refs = {
+            tuple(row)
+            for row in connection.execute(
+                "SELECT f.path, r.name, r.line, r.confidence"
+                " FROM refs r JOIN files f ON f.id = r.file_id"
+            )
+        }
+        return {"files": files, "symbols": symbols, "refs": refs}
+
     def stats(self) -> dict[str, int]:
         """Row counts: files, symbols, refs."""
         counts = {}
