@@ -10,7 +10,12 @@ readme = "README.md"
 license = "Apache-2.0"
 authors = [{ name = "Gati Varshney" }]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "tree-sitter>=0.23",
+    "tree-sitter-python>=0.23",
+    "tree-sitter-javascript>=0.23",
+    "tree-sitter-typescript>=0.23",
+]
 
 [project.optional-dependencies]
 dev = [

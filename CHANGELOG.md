@@ -10,6 +10,9 @@ once the first release exists. Until then, everything lands under Unreleased.
 
 ### Added
 
+- Tree-sitter parsing foundation: language detection for Python, JavaScript,
+  TypeScript, and TSX files, plus error-tolerant parsing from bytes. First
+  runtime dependencies: `tree-sitter` and the three grammar wheels.
 - Installable package skeleton (src layout) with the `cidx` console entry point;
   `cidx --help` and `cidx --version` work after `pip install -e .`.
 - CI matrix running ruff and pytest on {Ubuntu, macOS, Windows} x {Python 3.11, 3.12, 3.13}.
