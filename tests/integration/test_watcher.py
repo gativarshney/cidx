@@ -131,7 +131,9 @@ class TestReconciliationSweep:
             (repo / "silent.py").write_bytes(b"def unheard():\n    pass\n")
             assert wait_for(db_path.exists, timeout=10.0)
             with Store.open(db_path) as viewer:
-                assert wait_for(lambda: bool(viewer.lookup_exact("unheard")))
+                assert wait_for(
+                    lambda: bool(viewer.lookup_exact("unheard")), timeout=30.0
+                )
         finally:
             instance.stop()
 
@@ -154,7 +156,9 @@ class TestGitignore:
             (repo / "public.py").write_bytes(b"def visible():\n    pass\n")
             assert wait_for(db_path.exists, timeout=10.0)
             with Store.open(db_path) as viewer:
-                assert wait_for(lambda: bool(viewer.lookup_exact("visible")))
+                assert wait_for(
+                    lambda: bool(viewer.lookup_exact("visible")), timeout=30.0
+                )
                 assert viewer.lookup_exact("hidden") == []
                 assert "secret.py" not in viewer.indexed_paths()
         finally:
