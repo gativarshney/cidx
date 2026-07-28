@@ -51,7 +51,19 @@ class Store:
         # readers' opens must outwait each other on slow machines, not error
         connection = sqlite3.connect(path, timeout=30.0, isolation_level=None)
         connection.row_factory = sqlite3.Row
-        connection.execute("PRAGMA journal_mode=WAL")
+        # Converting a fresh database to WAL can return "database is locked"
+        # WITHOUT consulting the busy handler when two connections race the
+        # conversion, so this one pragma gets an explicit retry loop.
+        deadline = time.monotonic() + 30.0
+        while True:
+            try:
+                connection.execute("PRAGMA journal_mode=WAL")
+                break
+            except sqlite3.OperationalError:
+                if time.monotonic() >= deadline:
+                    connection.close()
+                    raise
+                time.sleep(0.05)
         connection.execute("PRAGMA synchronous=NORMAL")
         connection.execute("PRAGMA foreign_keys=ON")
         _ensure_schema(connection)
