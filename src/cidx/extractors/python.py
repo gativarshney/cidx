@@ -48,8 +48,10 @@ def extract(source: bytes) -> Extraction:
             symbols.append(const)
     for stmt in captures.get("import.stmt", []):
         symbols.extend(_import_symbols(source, stmt))
-    symbols = _dedupe_consts(symbols)
+    # Sort before deduping so "first binding" means lowest line, not
+    # whichever capture the query cursor happened to yield first.
     symbols.sort(key=lambda s: (s.start_line, s.qualified_name))
+    symbols = _dedupe_consts(symbols)
 
     seen: set[tuple[str, int]] = set()
     references: list[Reference] = []
