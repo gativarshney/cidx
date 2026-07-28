@@ -35,4 +35,15 @@ jobs:
         run: ruff format --check .
 
       - name: Tests
-        run: pytest -q
+        shell: bash
+        run: |
+          set -o pipefail
+          pytest -q 2>&1 | tee pytest.log || {
+            {
+              echo "### pytest failures (${{ matrix.os }} / py${{ matrix.python-version }})"
+              echo '```'
+              tail -n 100 pytest.log
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
