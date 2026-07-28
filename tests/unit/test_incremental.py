@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -84,6 +85,11 @@ class TestRefreshPath:
         assert outcome == "removed"
         assert store.stats()["files"] == 0
 
+    @pytest.mark.skipif(
+        os.name != "nt",
+        reason="backslash is a separator only on Windows; on POSIX it is a"
+        " legal filename character and must not be rewritten",
+    )
     def test_windows_style_relative_path_is_normalized(
         self, repo: Path, store: Store
     ) -> None:
