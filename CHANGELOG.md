@@ -10,6 +10,10 @@ once the first release exists. Until then, everything lands under Unreleased.
 
 ### Added
 
+- Storage layer: SQLite index (WAL, FTS5) with one-transaction-per-file
+  updates, stored outside the repository under the per-user cache directory.
+- `cidx index`, `cidx query`, and `cidx stats` commands, each with `--json`.
+  Indexing honors `.gitignore` (via git) and skips oversized files.
 - TypeScript/JavaScript/TSX symbol and reference extractor: functions
   (including arrow functions bound to consts), classes, methods, class
   fields, consts, imports, re-exports, and anonymous default exports;
