@@ -39,6 +39,9 @@ jobs:
         run: |
           set -o pipefail
           pytest -q 2>&1 | tee pytest.log || {
+            # annotations are publicly visible on the run page; raw logs are not
+            grep -E '^(FAILED|ERROR)' pytest.log | head -n 20 \
+              | while IFS= read -r line; do echo "::error::${line}"; done
             {
               echo "### pytest failures (${{ matrix.os }} / py${{ matrix.python-version }})"
               echo '```'

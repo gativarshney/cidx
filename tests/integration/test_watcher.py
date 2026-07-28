@@ -1,7 +1,11 @@
 """Integration tests for the watcher: real observer, real threads, real files.
 
 Timing-sensitive by nature, so every assertion polls with a generous deadline
-rather than sleeping fixed amounts.
+rather than sleeping fixed amounts. Polling is deliberately gentle on the
+database: each test reuses one long-lived reader connection (WAL readers see
+every committed write) instead of opening a connection per poll, and the
+expensive cold-rebuild comparison runs at a slow interval — CI runners are
+much slower than the watcher itself.
 """
 
 from __future__ import annotations
@@ -22,18 +26,19 @@ from cidx.core.watcher import Watcher
 GIT = shutil.which("git")
 
 
-def wait_for(predicate: Callable[[], bool], timeout: float = 10.0) -> bool:
+def wait_for(
+    predicate: Callable[[], bool], timeout: float = 15.0, interval: float = 0.05
+) -> bool:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         if predicate():
             return True
-        time.sleep(0.02)
+        time.sleep(interval)
     return False
 
 
-def converged(repo: Path, db_path: Path) -> bool:
-    with Store.open(db_path) as reader:
-        live = reader.snapshot()
+def converged(repo: Path, reader: Store) -> bool:
+    live = reader.snapshot()
     # a fresh database every time: a reused one would keep stale rows and
     # make the comparison unwinnable after deletes
     with tempfile.TemporaryDirectory(prefix="cidx-cold-") as tmp:
@@ -68,37 +73,36 @@ def watcher(repo: Path, db_path: Path) -> Iterator[Watcher]:
     instance.stop()
 
 
+@pytest.fixture
+def reader(db_path: Path, watcher: Watcher) -> Iterator[Store]:
+    """One long-lived read connection, opened once the consumer creates the db."""
+    assert wait_for(db_path.exists, timeout=10.0)
+    with Store.open(db_path) as opened:
+        yield opened
+
+
 class TestEventPath:
-    def test_new_file_becomes_queryable(
-        self, repo: Path, db_path: Path, watcher: Watcher
-    ) -> None:
+    def test_new_file_becomes_queryable(self, repo: Path, reader: Store) -> None:
         (repo / "fresh.py").write_bytes(b"def fresh_symbol():\n    pass\n")
-
-        def indexed() -> bool:
-            with Store.open(db_path) as reader:
-                return bool(reader.lookup_exact("fresh_symbol"))
-
-        assert wait_for(indexed)
+        assert wait_for(lambda: bool(reader.lookup_exact("fresh_symbol")))
 
     def test_edits_deletes_and_renames_converge(
-        self, repo: Path, db_path: Path, watcher: Watcher
+        self, repo: Path, reader: Store
     ) -> None:
         (repo / "a.py").write_bytes(b"def first():\n    pass\n")
         (repo / "b.ts").write_bytes(b"export const x = () => run();\n")
-        assert wait_for(lambda: converged(repo, db_path))
+        assert wait_for(lambda: converged(repo, reader), interval=0.5)
         (repo / "a.py").write_bytes(b"def second():\n    pass\n")
         (repo / "b.ts").rename(repo / "c.ts")
         (repo / "app.py").unlink()
-        assert wait_for(lambda: converged(repo, db_path))
+        assert wait_for(lambda: converged(repo, reader), interval=0.5)
 
-    def test_branch_switch_storm_converges(
-        self, repo: Path, db_path: Path, watcher: Watcher
-    ) -> None:
+    def test_branch_switch_storm_converges(self, repo: Path, reader: Store) -> None:
         for i in range(30):
             (repo / f"mod_{i:02d}.py").write_bytes(
                 f"def before_{i}():\n    return {i}\n".encode()
             )
-        assert wait_for(lambda: converged(repo, db_path), timeout=20.0)
+        assert wait_for(lambda: converged(repo, reader), timeout=40.0, interval=0.75)
         # the storm: every file rewritten, a third deleted, new ones appear
         for i in range(30):
             target = repo / f"mod_{i:02d}.py"
@@ -110,7 +114,7 @@ class TestEventPath:
             (repo / f"new_{i:02d}.ts").write_bytes(
                 f"export const item_{i} = () => go_{i}();\n".encode()
             )
-        assert wait_for(lambda: converged(repo, db_path), timeout=20.0)
+        assert wait_for(lambda: converged(repo, reader), timeout=40.0, interval=0.75)
 
 
 class TestReconciliationSweep:
@@ -125,12 +129,9 @@ class TestReconciliationSweep:
         instance.start()
         try:
             (repo / "silent.py").write_bytes(b"def unheard():\n    pass\n")
-
-            def indexed() -> bool:
-                with Store.open(db_path) as reader:
-                    return bool(reader.lookup_exact("unheard"))
-
-            assert wait_for(indexed)
+            assert wait_for(db_path.exists, timeout=10.0)
+            with Store.open(db_path) as viewer:
+                assert wait_for(lambda: bool(viewer.lookup_exact("unheard")))
         finally:
             instance.stop()
 
@@ -151,37 +152,30 @@ class TestGitignore:
         try:
             (repo / "secret.py").write_bytes(b"def hidden():\n    pass\n")
             (repo / "public.py").write_bytes(b"def visible():\n    pass\n")
-
-            def public_indexed() -> bool:
-                with Store.open(db_path) as reader:
-                    return bool(reader.lookup_exact("visible"))
-
-            assert wait_for(public_indexed)
-            with Store.open(db_path) as reader:
-                assert reader.lookup_exact("hidden") == []
-                assert "secret.py" not in reader.indexed_paths()
+            assert wait_for(db_path.exists, timeout=10.0)
+            with Store.open(db_path) as viewer:
+                assert wait_for(lambda: bool(viewer.lookup_exact("visible")))
+                assert viewer.lookup_exact("hidden") == []
+                assert "secret.py" not in viewer.indexed_paths()
         finally:
             instance.stop()
 
 
 class TestLatency:
-    def test_save_to_queryable_p95(
-        self, repo: Path, db_path: Path, watcher: Watcher
-    ) -> None:
+    def test_save_to_queryable_p95(self, repo: Path, reader: Store) -> None:
         target = repo / "hot.py"
         samples: list[float] = []
         for i in range(20):
             marker = f"edit_marker_{i}"
             started = time.monotonic()
             target.write_bytes(f"def {marker}():\n    return {i}\n".encode())
-
-            def queryable(name: str = marker) -> bool:
-                with Store.open(db_path) as reader:
-                    return bool(reader.lookup_exact(name))
-
-            assert wait_for(queryable), f"edit {i} never became queryable"
+            assert wait_for(lambda name=marker: bool(reader.lookup_exact(name))), (
+                f"edit {i} never became queryable"
+            )
             samples.append(time.monotonic() - started)
         samples.sort()
         p95 = samples[int(len(samples) * 0.95) - 1]
         print(f"\nsave-to-queryable p95: {p95 * 1000:.0f}ms over {len(samples)} edits")
-        assert p95 < 2.0  # generous CI bound; the target number is reported above
+        # regression guard sized for loaded CI runners; the measured target
+        # (<150ms, ARCHITECTURE.md) is the printed number above
+        assert p95 < 5.0

@@ -47,7 +47,9 @@ class Store:
         """Open (creating or rebuilding if needed) the index at *db_path*."""
         path = Path(db_path)
         path.parent.mkdir(parents=True, exist_ok=True)
-        connection = sqlite3.connect(path, isolation_level=None)
+        # 30s busy timeout: the watcher's write transactions and other
+        # readers' opens must outwait each other on slow machines, not error
+        connection = sqlite3.connect(path, timeout=30.0, isolation_level=None)
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA journal_mode=WAL")
         connection.execute("PRAGMA synchronous=NORMAL")
