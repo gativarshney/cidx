@@ -16,7 +16,7 @@ from collections.abc import Sequence
 from importlib.metadata import version
 from pathlib import Path
 
-from cidx.core import indexer, repoid
+from cidx.core import incremental, indexer, repoid
 from cidx.core.store import Store, SymbolRow
 
 
@@ -50,6 +50,11 @@ def build_parser() -> argparse.ArgumentParser:
     stats = subparsers.add_parser("stats", help="show index size and location")
     _add_common_arguments(stats)
 
+    check = subparsers.add_parser(
+        "check", help="verify the index exactly matches a cold rebuild"
+    )
+    _add_common_arguments(check)
+
     return parser
 
 
@@ -75,6 +80,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _run_index(args)
     if args.command == "query":
         return _run_query(args)
+    if args.command == "check":
+        return _run_check(args)
     return _run_stats(args)
 
 
@@ -150,6 +157,38 @@ def _run_stats(args: argparse.Namespace) -> int:
         )
         print(f"index: {db_path}")
     return 0
+
+
+def _run_check(args: argparse.Namespace) -> int:
+    store = _open_existing(args.repo)
+    if store is None:
+        return 1
+    with store:
+        drifts = incremental.check_drift(Path(args.repo).resolve(), store)
+    if args.json:
+        print(
+            json.dumps(
+                [
+                    {
+                        "table": d.table,
+                        "missing": [list(row) for row in d.missing],
+                        "extra": [list(row) for row in d.extra],
+                    }
+                    for d in drifts
+                ]
+            )
+        )
+        return 0 if not drifts else 1
+    if not drifts:
+        print("no drift: the index matches a cold rebuild")
+        return 0
+    for drift in drifts:
+        for row in drift.missing:
+            print(f"{drift.table}: missing from index: {row}")
+        for row in drift.extra:
+            print(f"{drift.table}: stale in index: {row}")
+    print("drift detected; run `cidx index` to rebuild, and please report this")
+    return 1
 
 
 def _open_existing(repo: str) -> Store | None:

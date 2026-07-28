@@ -138,6 +138,33 @@ class TestStatsCommand:
         assert payload["symbols"] == 2
 
 
+class TestCheckCommand:
+    def test_clean_index_reports_no_drift(
+        self,
+        repo: Path,
+        isolated_cache: Path,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        main(["index", "--repo", str(repo)])
+        capsys.readouterr()
+        assert main(["check", "--repo", str(repo)]) == 0
+        assert "no drift" in capsys.readouterr().out
+
+    def test_stale_index_reports_drift_and_fails(
+        self,
+        repo: Path,
+        isolated_cache: Path,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        main(["index", "--repo", str(repo)])
+        (repo / "extra.py").write_bytes(b"def fresh():\n    pass\n")
+        capsys.readouterr()
+        assert main(["check", "--repo", str(repo)]) == 1
+        out = capsys.readouterr().out
+        assert "missing from index" in out
+        assert "extra.py" in out
+
+
 class TestBareInvocation:
     def test_no_subcommand_prints_help_and_exits_zero(
         self, capsys: pytest.CaptureFixture[str]
