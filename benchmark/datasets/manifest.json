@@ -1,0 +1,29 @@
+{
+  "comment": "Pinned benchmark repositories. Every contestant sees exactly these bytes; scripts/clone_datasets.py materializes them. SHAs pinned 2026-07-28.",
+  "repositories": [
+    {
+      "name": "click",
+      "url": "https://github.com/pallets/click",
+      "commit": "00e592cea702e0b2caa0dee42489fdb1c22cd845",
+      "language": "python"
+    },
+    {
+      "name": "flask",
+      "url": "https://github.com/pallets/flask",
+      "commit": "36e4a824f340fdee7ed50937ba8e7f6bc7d17f81",
+      "language": "python"
+    },
+    {
+      "name": "express",
+      "url": "https://github.com/expressjs/express",
+      "commit": "a3714473feb3d2908add734d340e7755fd85e0a3",
+      "language": "javascript"
+    },
+    {
+      "name": "zod",
+      "url": "https://github.com/colinhacks/zod",
+      "commit": "912f0f51b0ced654d0069741e7160834dca742ee",
+      "language": "typescript"
+    }
+  ]
+}
