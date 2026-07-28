@@ -1,0 +1,23 @@
+{
+  "symbols": [
+    {
+      "name": "endpoint",
+      "qualified_name": "endpoint",
+      "kind": "function",
+      "start_line": 5,
+      "end_line": 10,
+      "signature": "def endpoint( request: Request, *, verbose: bool = False, ) -> Response",
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "route",
+      "line": 1
+    },
+    {
+      "name": "handle",
+      "line": 10
+    }
+  ]
+}

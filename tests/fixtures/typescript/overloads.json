@@ -1,0 +1,19 @@
+{
+  "symbols": [
+    {
+      "name": "parse",
+      "qualified_name": "parse",
+      "kind": "function",
+      "start_line": 3,
+      "end_line": 5,
+      "signature": "function parse(input: unknown): Config",
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "build",
+      "line": 4
+    }
+  ]
+}

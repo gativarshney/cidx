@@ -1,0 +1,19 @@
+{
+  "symbols": [
+    {
+      "name": "active",
+      "qualified_name": "active",
+      "kind": "const",
+      "start_line": 13,
+      "end_line": 13,
+      "signature": null,
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "load",
+      "line": 13
+    }
+  ]
+}

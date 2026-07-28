@@ -1,0 +1,75 @@
+{
+  "symbols": [
+    {
+      "name": "Config",
+      "qualified_name": "Config",
+      "kind": "class",
+      "start_line": 1,
+      "end_line": 16,
+      "signature": "class Config",
+      "parent": null
+    },
+    {
+      "name": "value",
+      "qualified_name": "Config.value",
+      "kind": "method",
+      "start_line": 3,
+      "end_line": 4,
+      "signature": "def value(self) -> int",
+      "parent": "Config"
+    },
+    {
+      "name": "value",
+      "qualified_name": "Config.value",
+      "kind": "method",
+      "start_line": 7,
+      "end_line": 8,
+      "signature": "def value(self, v: int) -> None",
+      "parent": "Config"
+    },
+    {
+      "name": "default",
+      "qualified_name": "Config.default",
+      "kind": "method",
+      "start_line": 11,
+      "end_line": 12,
+      "signature": "def default() -> \"Config\"",
+      "parent": "Config"
+    },
+    {
+      "name": "parse",
+      "qualified_name": "Config.parse",
+      "kind": "method",
+      "start_line": 15,
+      "end_line": 16,
+      "signature": "def parse(cls, raw: str) -> \"Config\"",
+      "parent": "Config"
+    }
+  ],
+  "references": [
+    {
+      "name": "property",
+      "line": 2
+    },
+    {
+      "name": "setter",
+      "line": 6
+    },
+    {
+      "name": "staticmethod",
+      "line": 10
+    },
+    {
+      "name": "Config",
+      "line": 12
+    },
+    {
+      "name": "classmethod",
+      "line": 14
+    },
+    {
+      "name": "cls",
+      "line": 16
+    }
+  ]
+}

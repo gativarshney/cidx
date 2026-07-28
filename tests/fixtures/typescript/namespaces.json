@@ -1,0 +1,19 @@
+{
+  "symbols": [
+    {
+      "name": "isEmail",
+      "qualified_name": "isEmail",
+      "kind": "function",
+      "start_line": 2,
+      "end_line": 4,
+      "signature": "function isEmail(s: string): boolean",
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "test",
+      "line": 3
+    }
+  ]
+}

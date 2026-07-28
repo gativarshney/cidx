@@ -1,0 +1,73 @@
+{
+  "symbols": [
+    {
+      "name": "TYPE_CHECKING",
+      "qualified_name": "TYPE_CHECKING",
+      "kind": "import",
+      "start_line": 1,
+      "end_line": 1,
+      "signature": "typing.TYPE_CHECKING",
+      "parent": null
+    },
+    {
+      "name": "json_impl",
+      "qualified_name": "json_impl",
+      "kind": "import",
+      "start_line": 4,
+      "end_line": 4,
+      "signature": "orjson",
+      "parent": null
+    },
+    {
+      "name": "json_impl",
+      "qualified_name": "json_impl",
+      "kind": "import",
+      "start_line": 6,
+      "end_line": 6,
+      "signature": "json",
+      "parent": null
+    },
+    {
+      "name": "OrderedDict",
+      "qualified_name": "OrderedDict",
+      "kind": "import",
+      "start_line": 9,
+      "end_line": 9,
+      "signature": "collections.OrderedDict",
+      "parent": null
+    },
+    {
+      "name": "DEBUG",
+      "qualified_name": "DEBUG",
+      "kind": "const",
+      "start_line": 11,
+      "end_line": 11,
+      "signature": null,
+      "parent": null
+    },
+    {
+      "name": "log",
+      "qualified_name": "log",
+      "kind": "function",
+      "start_line": 14,
+      "end_line": 15,
+      "signature": "def log(msg)",
+      "parent": null
+    },
+    {
+      "name": "log",
+      "qualified_name": "log",
+      "kind": "function",
+      "start_line": 17,
+      "end_line": 18,
+      "signature": "def log(msg)",
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "print",
+      "line": 15
+    }
+  ]
+}

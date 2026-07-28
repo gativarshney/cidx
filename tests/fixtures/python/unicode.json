@@ -1,0 +1,23 @@
+{
+  "symbols": [
+    {
+      "name": "GR\u00dcSSE",
+      "qualified_name": "GR\u00dcSSE",
+      "kind": "const",
+      "start_line": 1,
+      "end_line": 1,
+      "signature": null,
+      "parent": null
+    },
+    {
+      "name": "gr\u00fc\u00dfen",
+      "qualified_name": "gr\u00fc\u00dfen",
+      "kind": "function",
+      "start_line": 4,
+      "end_line": 5,
+      "signature": "def gr\u00fc\u00dfen(name: str) -> str",
+      "parent": null
+    }
+  ],
+  "references": []
+}

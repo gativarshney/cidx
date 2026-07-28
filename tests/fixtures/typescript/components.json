@@ -1,0 +1,36 @@
+{
+  "symbols": [
+    {
+      "name": "Card",
+      "qualified_name": "Card",
+      "kind": "import",
+      "start_line": 1,
+      "end_line": 1,
+      "signature": "./card:Card",
+      "parent": null
+    },
+    {
+      "name": "Dashboard",
+      "qualified_name": "Dashboard",
+      "kind": "function",
+      "start_line": 3,
+      "end_line": 12,
+      "signature": "function Dashboard({ user })",
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "Card",
+      "line": 6
+    },
+    {
+      "name": "fetchTitle",
+      "line": 6
+    },
+    {
+      "name": "Panel",
+      "line": 7
+    }
+  ]
+}

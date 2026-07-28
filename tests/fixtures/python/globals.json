@@ -1,0 +1,46 @@
+{
+  "symbols": [
+    {
+      "name": "MAX_SIZE",
+      "qualified_name": "MAX_SIZE",
+      "kind": "const",
+      "start_line": 1,
+      "end_line": 1,
+      "signature": null,
+      "parent": null
+    },
+    {
+      "name": "NAME",
+      "qualified_name": "NAME",
+      "kind": "const",
+      "start_line": 2,
+      "end_line": 2,
+      "signature": null,
+      "parent": null
+    },
+    {
+      "name": "LARGE_MODE",
+      "qualified_name": "LARGE_MODE",
+      "kind": "const",
+      "start_line": 7,
+      "end_line": 7,
+      "signature": null,
+      "parent": null
+    },
+    {
+      "name": "total",
+      "qualified_name": "total",
+      "kind": "const",
+      "start_line": 9,
+      "end_line": 9,
+      "signature": null,
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "compute_pair",
+      "line": 4
+    }
+  ]
+}

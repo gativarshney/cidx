@@ -1,0 +1,36 @@
+{
+  "symbols": [
+    {
+      "name": "counter",
+      "qualified_name": "counter",
+      "kind": "function",
+      "start_line": 1,
+      "end_line": 3,
+      "signature": "var counter = function makeCounter()",
+      "parent": null
+    },
+    {
+      "name": "result",
+      "qualified_name": "result",
+      "kind": "const",
+      "start_line": 9,
+      "end_line": 9,
+      "signature": null,
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "increment",
+      "line": 2
+    },
+    {
+      "name": "setup",
+      "line": 6
+    },
+    {
+      "name": "finish",
+      "line": 9
+    }
+  ]
+}

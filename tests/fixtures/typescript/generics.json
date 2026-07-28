@@ -1,0 +1,54 @@
+{
+  "symbols": [
+    {
+      "name": "Store",
+      "qualified_name": "Store",
+      "kind": "class",
+      "start_line": 1,
+      "end_line": 5,
+      "signature": "class Store<T extends Item> extends BaseStore<T>",
+      "parent": null
+    },
+    {
+      "name": "add",
+      "qualified_name": "Store.add",
+      "kind": "method",
+      "start_line": 2,
+      "end_line": 4,
+      "signature": "add(entry: T): void",
+      "parent": "Store"
+    },
+    {
+      "name": "identity",
+      "qualified_name": "identity",
+      "kind": "function",
+      "start_line": 7,
+      "end_line": 9,
+      "signature": "function identity<T>(value: T): T",
+      "parent": null
+    },
+    {
+      "name": "store",
+      "qualified_name": "store",
+      "kind": "const",
+      "start_line": 11,
+      "end_line": 11,
+      "signature": null,
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "BaseStore",
+      "line": 1
+    },
+    {
+      "name": "validate",
+      "line": 3
+    },
+    {
+      "name": "Store",
+      "line": 11
+    }
+  ]
+}

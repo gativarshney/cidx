@@ -1,0 +1,13 @@
+{
+  "symbols": [],
+  "references": [
+    {
+      "name": "defaultPort",
+      "line": 1
+    },
+    {
+      "name": "loadConfig",
+      "line": 1
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "symbols": [
+    {
+      "name": "Point",
+      "qualified_name": "Point",
+      "kind": "class",
+      "start_line": 1,
+      "end_line": 12,
+      "signature": "class Point",
+      "parent": null
+    },
+    {
+      "name": "__slots__",
+      "qualified_name": "Point.__slots__",
+      "kind": "const",
+      "start_line": 2,
+      "end_line": 2,
+      "signature": null,
+      "parent": "Point"
+    },
+    {
+      "name": "__init__",
+      "qualified_name": "Point.__init__",
+      "kind": "method",
+      "start_line": 4,
+      "end_line": 6,
+      "signature": "def __init__(self, x: float, y: float) -> None",
+      "parent": "Point"
+    },
+    {
+      "name": "__repr__",
+      "qualified_name": "Point.__repr__",
+      "kind": "method",
+      "start_line": 8,
+      "end_line": 9,
+      "signature": "def __repr__(self) -> str",
+      "parent": "Point"
+    },
+    {
+      "name": "move",
+      "qualified_name": "Point.move",
+      "kind": "method",
+      "start_line": 11,
+      "end_line": 12,
+      "signature": "async def move(self, dx: float) -> None",
+      "parent": "Point"
+    }
+  ],
+  "references": [
+    {
+      "name": "format_point",
+      "line": 9
+    },
+    {
+      "name": "animate",
+      "line": 12
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "symbols": [
+    {
+      "name": "square",
+      "qualified_name": "square",
+      "kind": "const",
+      "start_line": 1,
+      "end_line": 1,
+      "signature": null,
+      "parent": null
+    },
+    {
+      "name": "items",
+      "qualified_name": "items",
+      "kind": "const",
+      "start_line": 3,
+      "end_line": 3,
+      "signature": null,
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "rank",
+      "line": 3
+    },
+    {
+      "name": "sorted",
+      "line": 3
+    }
+  ]
+}

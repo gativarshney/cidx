@@ -1,0 +1,35 @@
+{
+  "symbols": [
+    {
+      "name": "collect",
+      "qualified_name": "collect",
+      "kind": "function",
+      "start_line": 1,
+      "end_line": 4,
+      "signature": "def collect(rows)",
+      "parent": null
+    }
+  ],
+  "references": [
+    {
+      "name": "normalize",
+      "line": 2
+    },
+    {
+      "name": "valid",
+      "line": 2
+    },
+    {
+      "name": "compute",
+      "line": 3
+    },
+    {
+      "name": "pairs",
+      "line": 3
+    },
+    {
+      "name": "chain",
+      "line": 4
+    }
+  ]
+}
