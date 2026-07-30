@@ -133,6 +133,13 @@ cython_debug/
 # Benchmark dataset checkouts (pinned clones, never committed)
 benchmark/datasets/repos/
 
+# Stray index databases (cidx stores them outside the repo by design;
+# this is defense in depth against a manually copied one)
+*.db
+*.db-wal
+*.db-shm
+*.sqlite3
+
 # IDEs
 .idea/
 .vscode/
