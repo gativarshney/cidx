@@ -1,12 +1,13 @@
 # cidx
 
 [![CI](https://github.com/gativarshney/cidx/actions/workflows/ci.yml/badge.svg)](https://github.com/gativarshney/cidx/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/cidx)](https://pypi.org/project/cidx/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 ![Python 3.11–3.13](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
 
 A zero-config local code index for AI coding agents — with an optional, reproducible evaluation harness for anyone who wants to measure retrieval tools themselves.
 
-**Status: v1 feature-complete, building in public. First PyPI alpha in preparation.**
+**Status: v1 feature-complete, building in public. Alpha releases on [PyPI](https://pypi.org/project/cidx/).**
 
 ## What this is
 
@@ -26,12 +27,24 @@ Zero-config means exactly that: no API keys, no vector database, no Docker, no c
 - **Proof of correctness**: a property-based convergence suite (Hypothesis) asserts the incremental index equals a cold rebuild — including resolutions — across random edit/delete/rename storms, plus `cidx check` for users.
 - **Optional evaluation harness**: pinned datasets, 32 machine-checkable tasks (dev/holdout split), a scripted agent loop with a recorded-response stub model, and a scorer that recomputes every metric from raw JSONL logs alone. See [benchmark/methodology.md](benchmark/methodology.md).
 
-## Quickstart (from source; PyPI release not yet published)
+## Quickstart
+
+```bash
+pip install --pre cidx    # alpha release, so pip needs --pre
+```
+
+or run it without installing anything:
+
+```bash
+uvx cidx --version
+```
+
+From source, for contributors:
 
 ```bash
 git clone https://github.com/gativarshney/cidx
 cd cidx
-pip install -e .
+pip install -e ".[dev]"
 ```
 
 Index and query a repository:
@@ -57,8 +70,6 @@ Add cidx to any MCP-capable coding agent (the watcher keeps the index fresh whil
   }
 }
 ```
-
-`uvx cidx` becomes the one-line install once the first PyPI release lands.
 
 ## Measured performance
 

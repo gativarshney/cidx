@@ -6,7 +6,7 @@ recording; the run itself should be one take with no narration pauses.
 ## Setup (off camera)
 
 ```bash
-pip install -e .                     # or: uvx cidx, once published
+pip install --pre cidx               # or from a checkout: pip install -e .
 python scripts/clone_datasets.py     # materializes the pinned repos
 cd benchmark/datasets/repos/click
 ```

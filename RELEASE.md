@@ -4,7 +4,7 @@ The exact steps to cut a cidx release. Everything automated lives in
 `.github/workflows/release.yml` (PyPI trusted publishing — no tokens, no
 secrets); this file is the ordered checklist for the manual parts.
 
-## One-time setup (before the first release only)
+## One-time setup (completed 2026-07-30 for 0.1.0a1; kept for reference)
 
 1. **Name check (ADR-001).** Confirm `cidx` is still free on PyPI:
    <https://pypi.org/project/cidx/> should 404. If it is taken, stop and
@@ -65,9 +65,8 @@ secrets); this file is the ordered checklist for the manual parts.
    title `cidx <version>`, and paste that version's CHANGELOG section as
    the notes. For alphas, tick *Set as a pre-release*.
 
-6. **README follow-up (first release only).** Update the Quickstart to the
-   published install path (`uvx cidx` / `pip install cidx`) and remove the
-   "no PyPI release yet" caveats — in a normal commit after the tag.
+6. **README follow-up (done with 0.1.0a1).** The Quickstart now shows the
+   published install path; nothing further needed for later releases.
 
 ## Notes
 
