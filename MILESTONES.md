@@ -73,26 +73,25 @@ Phase-based, self-paced. One phase is in play at a time; work happens only on th
 - Dependencies: Phase 7 for shaping; Phase 6 as the minimum.
 - Suggested next phase: Phase 9.
 
-## Phase 9: Benchmark
+## Phase 9: Evaluation harness (optional; not a release gate — ADR-013)
 
-- Goal: replace claims with a reproducible league table.
-- Deliverables, in order: `benchmark/methodology.md` FIRST (metrics, repetitions, medians with IQR, dev/holdout task split, honesty rules, API cost caps), before any ranking tuning; pinned datasets (manifest with URL and commit SHA, plus `scripts/clone_datasets.py`); 30 to 50 tasks with machine-checkable ground truth, split dev/holdout; runner with a recorded-response stub mode and budget caps; contestant adapters (grep baseline, cidx, and at least two competitors, with more welcome by PR); scorer that recomputes every metric from raw JSONL logs; ranking weights tuned on the dev split only; league table and raw logs committed under `benchmark/results/<YYYY-MM>/`.
-- Definition of Done: a published table (task success, tokens per task, wasted reads, wall time, cost per solved task) from 3 to 5 repetitions, including at least one metric cidx does not win reported at equal prominence; a stranger can re-derive every number from the committed logs; the holdout set is untouched by tuning.
+- Goal: a reproducible harness that anyone can run, with their own API credentials, to measure agent retrieval quality and cost across tools. Running real-model evaluations is optional and self-funded; the project is complete and releasable without published results.
+- Deliverables: `benchmark/methodology.md` (metrics, repetitions, medians with IQR, dev/holdout task split, honesty rules, cost caps); pinned datasets (manifest with URL and commit SHA, plus `scripts/clone_datasets.py`); 30 to 50 tasks with machine-checkable ground truth, split dev/holdout; runner with a recorded-response stub mode and budget caps; contestant adapters (grep baseline, cidx; competitor adapters welcome by PR); scorer that recomputes every metric from raw JSONL logs.
+- Definition of Done: the harness, tasks, and scorer exist, are tested, and run end to end against the stub model; anyone who chooses to publish results can do so under the methodology's honesty rules, with every number recomputable from the committed logs. Published results are explicitly not required.
 - Dependencies: Phase 8.
 - Suggested next phase: Phase 10.
 
 ## Phase 10: Packaging & Release
 
-- Goal: one-command install for strangers, and a launch that leads with data.
-- Deliverables: final name check (a short collision search, per ADR-001) and first PyPI release via trusted publishing; `uvx cidx` verified on all three OSes; README rebuilt around the benchmark table; MCP registry listing plus PulseMCP and Smithery; plugin manifests and directory listings for major MCP clients; npm pointer package directing npx users to uvx; demo GIF; launch posts staged as three drops (methodology, results, engine) plus outreach to authors of standing "best code MCP" comparison posts; support cadence written into SUPPORT.md and calendared.
-- Definition of Done: a stranger with no prior context installs in one command and gets a correct answer inside their coding agent; the resume line is updated with measured numbers; both old tutorial-tier projects are deleted from the resume.
-- Dependencies: Phase 9.
+- Goal: one-command install for strangers.
+- Deliverables: final name check (a short collision search, per ADR-001) and first PyPI release via trusted publishing; `uvx cidx` verified on all three OSes; MCP registry listing plus PulseMCP and Smithery; plugin manifests and directory listings for major MCP clients; npm pointer package directing npx users to uvx; demo GIF; support cadence written into SUPPORT.md and calendared.
+- Definition of Done: a stranger with no prior context installs in one command and gets a correct answer inside their coding agent; the resume line is updated with measured numbers.
+- Dependencies: Phase 8. Does not depend on Phase 9 or on any published evaluation results (ADR-013).
 - Suggested next phase: maintenance rhythm (recurring triage) and deliberate grooming of the deferred list.
 
 ## Kill criteria (agreed in advance; not renegotiable mid-phase)
 
 - If the convergence suite is not boringly stable by the end of Phase 4's budgeted effort: cut ranking sophistication in Phase 7 and ship three tools instead of five in Phase 8. Correctness is never the cut.
-- If the benchmark shows cidx losing to the grep baseline on task success (not merely tying): do not launch the engine as a recommendation; launch the benchmark as the product with cidx listed as a work-in-progress contestant. That is still a complete, resume-worthy project.
 - A pause at any phase boundary is a valid outcome: Phases 1 through 4 alone already produce the artifact that replaces the weak resume projects.
 
 ## Deferred list (v2 candidates, rejected for v1 on record)
@@ -101,7 +100,7 @@ Third and further languages; embeddings or hybrid retrieval; call graphs and imp
 
 ## Success tiers (graded at the first post-launch review, against promises, not moods)
 
-- Minimum (still a win): green convergence suite on three OSes; published benchmark with baseline plus two or more competitors and raw logs; PyPI package with one-command install; ten or more real strangers tried it; 150+ tests; the owner can whiteboard every component; both tutorial projects deleted from the resume.
-- Good: 100+ real users; 150 to 400 stars; benchmark cited by at least one standing comparison post; 25 to 40 percent token reduction at accuracy parity, reproduced by someone else; one outside contributor; the project fills 20+ interview minutes with depth to spare.
-- Excellent: 500 to 1,000 stars; the benchmark becomes the reference link in agent-retrieval arguments; a competitor's maintainer engages; a meetup talk; interviewers raise the project before the owner does.
+- Minimum (still a win): green convergence suite on three OSes; PyPI package with one-command install; ten or more real strangers tried it; 150+ tests; a complete, tested evaluation harness anyone can run; the owner can whiteboard every component; both tutorial projects deleted from the resume.
+- Good: 100+ real users; 150 to 400 stars; one outside contributor; someone independently runs the evaluation harness; the project fills 20+ interview minutes with depth to spare.
+- Excellent: 500 to 1,000 stars; a competitor's maintainer engages; a meetup talk; interviewers raise the project before the owner does.
 - Dream: placement in a major agent's curated plugin directory; thousands of stars; a vendor adopts the methodology; inbound interest from a developer-tooling company.

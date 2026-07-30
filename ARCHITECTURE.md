@@ -155,7 +155,7 @@ Benchmark path:
 ```
 task JSON + pinned repos -> runner (per contestant, N reps)
   -> raw JSONL logs -> scorer (recomputes all metrics)
-  -> league table -> README + published logs
+  -> league table (+ raw logs alongside, if the runner publishes)
 ```
 
 ## Testing strategy

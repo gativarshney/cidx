@@ -1,9 +1,9 @@
 """Weighted linear scorer over the engineered feature set.
 
 IMPORTANT — weight discipline (MILESTONES.md, Phase 7): these weights are
-deliberately UNTUNED defaults and must stay that way until the benchmark's
-dev task split exists. Tuning happens against measurement on the dev split
-only, never against vibes, and never against the holdout split.
+deliberately UNTUNED defaults. If they are ever tuned, tuning happens only
+against measured results from the evaluation harness's dev task split —
+never against vibes, and never against the holdout split.
 """
 
 from __future__ import annotations

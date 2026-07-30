@@ -1,8 +1,12 @@
-# Benchmark methodology
+# Evaluation methodology
 
-This document governs every measurement published from this repository. It
-is written before the first benchmark run and before any ranking tuning, on
-purpose: the rules must exist before there are numbers to be tempted by.
+The harness in this directory is optional (ADR-013): running it is
+self-funded — bring your own API credentials — and the project is complete
+without published results. No evaluations are scheduled or promised.
+
+This document governs any measurement someone chooses to publish from this
+harness. It was written before the first run and before any ranking tuning,
+on purpose: the rules must exist before there are numbers to be tempted by.
 Changes to this document require a dated entry in DECISIONS.md and must never
 be applied retroactively to already-published results.
 

@@ -33,8 +33,10 @@ def build_model(spec: str):
     if kind == "stub":
         return RecordedStub.from_file(argument)
     raise SystemExit(
-        f"unknown model spec {spec!r}; provider clients arrive with the"
-        " first paid run (methodology.md caps spend in the run manifest)"
+        f"unknown model spec {spec!r}; only the recorded-response stub ships."
+        " A real provider client is a small class implementing"
+        " ModelClient.complete (benchmark/runners/model.py) with your own"
+        " API credentials; methodology.md caps spend per run."
     )
 
 

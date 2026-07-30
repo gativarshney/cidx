@@ -4,7 +4,7 @@ Read this file at the start of every working session. It is the engineering cont
 
 ## Quick facts
 
-- Project: cidx, a zero-config local code index for AI coding agents, plus a neutral retrieval benchmark.
+- Project: cidx, a zero-config local code index for AI coding agents, plus an optional evaluation harness for code-retrieval tools.
 - Owner: Gati Varshney (GitHub: gativarshney). Solo maintainer. Final-year B.Tech CSE (Data Science) student; GSoC 2026 @ OpenPrinting; Winter of Code 5.0 Top 20 Contributor. This is a flagship portfolio project.
 - Repo: github.com/gativarshney/cidx (single repo: engine + benchmark + docs).
 - Language: Python 3.11+ (target 3.12). Package and CLI name: `cidx`. Install story: `uvx cidx`.
@@ -13,7 +13,7 @@ Read this file at the start of every working session. It is the engineering cont
 
 ## What cidx is, in two sentences
 
-cidx parses a repository into a symbol and reference index with tree-sitter, keeps it fresh in real time via a file watcher, and serves ranked, token-budgeted answers to coding agents over MCP. The repo also contains `benchmark/`, a reproducible harness that measures agent retrieval quality and cost across tools, with cidx as one contestant among several.
+cidx parses a repository into a symbol and reference index with tree-sitter, keeps it fresh in real time via a file watcher, and serves ranked, token-budgeted answers to coding agents over MCP. The repo also contains `benchmark/`, an optional, reproducible evaluation harness that anyone can run with their own API credentials to measure agent retrieval quality and cost across tools, with cidx as one contestant among several.
 
 ## Hard constraints (v1 scope law)
 
@@ -57,12 +57,13 @@ Rejected with reasons on record (see DECISIONS.md and docs/ARCHITECTURE.md). Do 
 - Type hints everywhere; `ruff` clean (lint + format). No clever metaprogramming, no premature abstraction, no speculative generality. Prefer boring stdlib solutions.
 - Public functions get docstrings that state contract, not narration. Error messages must tell the user what to do next.
 - SQLite discipline: WAL mode, `synchronous=NORMAL`, `foreign_keys=ON`, all multi-row mutations inside explicit transactions, schema_version checked on open.
-- MCP tool descriptions are prompts: wording changes agent behavior, so treat them as a measured surface (A/B against the benchmark, note results).
+- MCP tool descriptions are prompts: wording changes agent behavior, so treat them as a measurable surface (the evaluation harness can A/B them; note results if you run it).
 
-## Benchmark rules (summary; benchmark/methodology.md governs)
+## Evaluation harness rules (summary; benchmark/methodology.md governs)
 
-- The benchmark must remain credible despite living in cidx's repo: raw JSONL logs are published with every result, every number is recomputable from logs alone, all contestants run the same tasks under the same conditions, losses are published at the same prominence as wins, and competitor contestants are accepted by PR.
-- Tasks are split into a dev set and a holdout set. Ranking may be tuned ONLY against the dev set; holdout results are reported untouched. Never tune anything against holdout tasks.
+- The harness is optional and self-funded: anyone may run it with their own API credentials, and the project is complete without published results (ADR-013). No results, scheduled evaluations, or future comparisons are promised.
+- The rules below bind anyone who chooses to publish results from it: raw JSONL logs are published with every result, every number is recomputable from logs alone, all contestants run the same tasks under the same conditions, losses are published at the same prominence as wins, and competitor contestants are accepted by PR.
+- Tasks are split into a dev set and a holdout set. Ranking may be tuned ONLY against measured dev-set results; holdout results are reported untouched. Never tune anything against holdout tasks.
 - Paid API runs are budget-capped; develop the harness against the recorded-response stub model, spend money only on real measurements.
 
 ## When uncertain

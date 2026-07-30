@@ -4,9 +4,9 @@
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 ![Python 3.11–3.13](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
 
-A zero-config local code index for AI coding agents, and a neutral benchmark for measuring what code-retrieval tools actually save you.
+A zero-config local code index for AI coding agents — with an optional, reproducible evaluation harness for anyone who wants to measure retrieval tools themselves.
 
-**Status: pre-alpha, building in public. The engine is feature-complete for v1; benchmark results are pending real model runs; no PyPI release yet.**
+**Status: v1 feature-complete, building in public. First PyPI alpha in preparation.**
 
 ## What this is
 
@@ -24,7 +24,7 @@ Zero-config means exactly that: no API keys, no vector database, no Docker, no c
 - **Ranking and token budgets**: engineered features (match tier, kind, popularity, locality, recency) under a weighted linear scorer; responses fit ~700 tokens with truncation markers and freshness stamps; misses recommend grep (fail open).
 - **Five read-only MCP tools** over stdio: `search_symbols`, `find_definition`, `find_references`, `outline_file`, `repo_map`.
 - **Proof of correctness**: a property-based convergence suite (Hypothesis) asserts the incremental index equals a cold rebuild — including resolutions — across random edit/delete/rename storms, plus `cidx check` for users.
-- **Benchmark harness**: pinned datasets, 32 machine-checkable tasks (dev/holdout split), a scripted agent loop with a recorded-response stub model, and a scorer that recomputes every metric from raw JSONL logs alone. See [benchmark/methodology.md](benchmark/methodology.md).
+- **Optional evaluation harness**: pinned datasets, 32 machine-checkable tasks (dev/holdout split), a scripted agent loop with a recorded-response stub model, and a scorer that recomputes every metric from raw JSONL logs alone. See [benchmark/methodology.md](benchmark/methodology.md).
 
 ## Quickstart (from source; PyPI release not yet published)
 
@@ -84,17 +84,17 @@ Test suite: **241 tests** (golden-file extractor tests, the property-based conve
   `require(...)` calls do appear as references.
 - **No semantic or conceptual search** — by design (ADR-007): retrieval works
   on names, references, and file structure, so "where is auth handled?"
-  style questions are out of scope until the benchmark proves they matter.
+  style questions are out of scope for v1.
 - **Reference resolution has no type checker.** Confidence tags (`exact`,
-  `import`, `name-only`) say how each reference was resolved; precision per
-  tier gets measured by the benchmark, not promised.
+  `import`, `name-only`) state how each reference was resolved rather than
+  promising precision; the evaluation harness can measure it per tier.
 - An index can be momentarily stale between a save and the watcher's update
   (~100 ms) — every response carries an `index_age_ms` freshness stamp, and
   `cidx check` can prove convergence at any time.
 
-## Benchmark
+## Evaluation harness (optional)
 
-This repository also contains `benchmark/`: a reproducible harness that measures agent retrieval across tools (a grep-only baseline, cidx, and competitor adapters welcome by PR) on pinned repositories. cidx is a contestant, not the referee's favorite: losses get published at the same size as wins, every number is recomputable from the published raw JSONL logs, and ranking may be tuned only against the dev task split. **No results are published yet** — they arrive with the first budget-capped real-model runs.
+This repository also contains `benchmark/`: a complete, tested harness for measuring agent retrieval across tools (a grep-only baseline, cidx, and competitor adapters welcome by PR) on pinned repositories. It is optional — the project is complete without it. Anyone can run it with their own API credentials via `scripts/run_benchmark.py`, or develop against the free recorded-response stub model. The honesty rules in [benchmark/methodology.md](benchmark/methodology.md) govern any results someone chooses to publish: raw JSONL logs alongside every table, every number recomputable from the logs, and losses shown exactly like wins.
 
 ## Project documents
 
@@ -108,7 +108,7 @@ This repository also contains `benchmark/`: a reproducible harness that measures
 
 I'm Gati Varshney, a Google Summer of Code 2026 contributor.
 
-This project is built in public. The architectural decisions are documented, the implementation is fully open source, and the benchmark exists so that claims are backed by reproducible measurements rather than adjectives.
+This project is built in public. The architectural decisions are documented, the implementation is fully open source, performance claims are measured rather than asserted, and an evaluation harness ships with the repository so anyone can verify retrieval quality independently.
 
 ## License
 

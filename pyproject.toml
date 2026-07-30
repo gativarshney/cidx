@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cidx"
-version = "0.1.0.dev0"
-description = "Zero-config local code index for AI coding agents, with a neutral retrieval benchmark."
+version = "0.1.0a1"
+description = "Zero-config local code index for AI coding agents, with an optional evaluation harness for retrieval tools."
 readme = "README.md"
 license = "Apache-2.0"
 authors = [{ name = "Gati Varshney" }]

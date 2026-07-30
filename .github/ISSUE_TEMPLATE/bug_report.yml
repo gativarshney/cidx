@@ -40,7 +40,7 @@ body:
     attributes:
       label: cidx version
       description: Output of `cidx --version`.
-      placeholder: cidx 0.1.0.dev0
+      placeholder: cidx 0.1.0a1
     validations:
       required: true
   - type: input

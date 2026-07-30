@@ -3,10 +3,18 @@
 All notable changes to cidx are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
-once the first release exists. Until then, everything lands under Unreleased.
+and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+Nothing yet.
+
+## [0.1.0a1] - 2026-07-30
+
+First alpha on PyPI: a name claim and an install path. The engine is
+feature-complete for v1, and the repository ships an optional evaluation
+harness anyone can run with their own API credentials (see DECISIONS.md,
+ADR-012 and ADR-013).
 
 ### Fixed
 
@@ -22,12 +30,12 @@ once the first release exists. Until then, everything lands under Unreleased.
 
 ### Added
 
-- Benchmark harness: pinned dataset manifest with `scripts/clone_datasets.py`,
-  32 machine-checkable tasks in JSON (dev/holdout split), a scripted agent
-  loop with a recorded-response stub model, contestant adapters (grep
-  baseline, cidx), and a scorer that recomputes every metric from raw JSONL
-  logs alone. Governed by `benchmark/methodology.md`. No results published
-  yet.
+- Optional evaluation harness: pinned dataset manifest with
+  `scripts/clone_datasets.py`, 32 machine-checkable tasks in JSON
+  (dev/holdout split), a scripted agent loop with a recorded-response stub
+  model, contestant adapters (grep baseline, cidx), and a scorer that
+  recomputes every metric from raw JSONL logs alone. Runnable by anyone with
+  their own API credentials; governed by `benchmark/methodology.md`.
 - MCP server (`cidx serve`): five read-only tools over stdio —
   `search_symbols`, `find_definition`, `find_references`, `outline_file`,
   `repo_map` — with budgeted responses, freshness stamps, and fail-open
