@@ -19,7 +19,16 @@ from hypothesis import strategies as st
 from cidx.core import incremental, indexer
 from cidx.core.store import Store
 
-PATHS = ("a.py", "b.py", "pkg/c.py", "d.ts", "pkg/e.tsx", "f.js", "notes.txt")
+PATHS = (
+    "a.py",
+    "b.py",
+    "pkg/c.py",
+    "d.ts",
+    "pkg/e.tsx",
+    "f.js",
+    "notes.txt",
+    ".venv/lib/vendored.py",  # junk dir: both paths must treat it as invisible
+)
 CONTENTS = (
     b"",
     b"def alpha():\n    return beta()\n",

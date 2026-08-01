@@ -1,10 +1,14 @@
 """Cold indexer: one full repository walk into the store.
 
-File discovery honors ``.gitignore`` exactly when git is available, by asking
+File discovery honors ``.gitignore`` when git is available, by asking
 ``git ls-files`` for tracked plus untracked-but-not-ignored files. Without
 git (no ``.git`` directory, or no git on PATH) it falls back to a filesystem
-walk that skips well-known junk directories. Files above the size cap and
-files cidx has no grammar for are skipped either way.
+walk. A fixed skip-list of build and dependency directories
+(``_ALWAYS_IGNORED_DIRS``) is applied in BOTH modes — even when a repository
+forgets to gitignore ``.venv`` or ``node_modules`` — so cold discovery and
+the incremental engine's ``is_ignored`` share one definition of "exists"
+(ADR-014). Files above the size cap and files cidx has no grammar for are
+skipped either way.
 
 Paths are stored repo-relative with forward slashes so an index is readable
 on every platform.
@@ -24,7 +28,7 @@ from cidx.extractors.base import Extraction
 
 DEFAULT_MAX_FILE_BYTES = 1_048_576  # 1 MiB: bigger files are generated, not code
 
-_FALLBACK_IGNORED_DIRS = frozenset(
+_ALWAYS_IGNORED_DIRS = frozenset(
     {
         ".git",
         ".hg",
@@ -106,6 +110,11 @@ def iter_source_files(root: Path) -> Iterator[Path]:
     listed = _git_listed_paths(root)
     if listed is not None:
         for relative in listed:
+            # junk directories are skipped in BOTH discovery paths, so the
+            # cold walk and is_ignored() agree on what exists even when a
+            # repository does not gitignore .venv / node_modules / build
+            if any(part in _ALWAYS_IGNORED_DIRS for part in relative.split("/")[:-1]):
+                continue
             path = root / relative
             if base.detect_language(path) is not None and path.is_file():
                 yield path
@@ -134,7 +143,7 @@ def _git_listed_paths(root: Path) -> list[str] | None:
 def _walk(root: Path) -> Iterator[Path]:
     for entry in sorted(root.iterdir(), key=lambda p: p.name):
         if entry.is_dir():
-            if entry.name not in _FALLBACK_IGNORED_DIRS:
+            if entry.name not in _ALWAYS_IGNORED_DIRS:
                 yield from _walk(entry)
         elif base.detect_language(entry) is not None:
             yield entry
@@ -145,12 +154,13 @@ def is_ignored(root: Path, relative_posix: str) -> bool:
     watcher event (or any direct refresh) can never index a file that a cold
     rebuild would exclude.
 
-    Junk directories are checked first (cheap); gitignore semantics come from
-    ``git check-ignore`` when the repo has one. A git failure fails open —
-    exactly like discovery's own fallback.
+    Junk directories are checked first (cheap) and apply in every mode, git
+    or not — mirroring iter_source_files exactly. Gitignore semantics come
+    from ``git check-ignore`` when the repo has one; a git failure fails
+    open, exactly like discovery's own fallback.
     """
     directories = relative_posix.split("/")[:-1]
-    if any(part in _FALLBACK_IGNORED_DIRS for part in directories):
+    if any(part in _ALWAYS_IGNORED_DIRS for part in directories):
         return True
     if not (root / ".git").exists():
         return False

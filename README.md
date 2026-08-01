@@ -18,7 +18,7 @@ Zero-config means exactly that: no API keys, no vector database, no Docker, no c
 ## What works today
 
 - **Two languages**: Python and TypeScript/JavaScript (including TSX/JSX), parsed error-tolerantly — half-written files still index.
-- **Cold indexing** honoring `.gitignore` (exact semantics via git) with size caps, reconciling stale rows on every run.
+- **Cold indexing** honoring `.gitignore` via git, plus a fixed skip-list of build and dependency directories (`.venv`, `node_modules`, `build`, `dist`, …) applied even when a repo forgets to gitignore them, with size caps and stale-row reconciliation on every run.
 - **Incremental updates**: content-hash invalidation, one SQLite transaction per file, deletes/renames/branch switches converge; a crash can never half-write the index.
 - **File watcher** (`cidx serve`): debounced, coalescing, with a periodic reconciliation sweep as the dropped-event safety net.
 - **Reference resolution** with confidence tags — `exact` (same file), `import` (followed to source), `name-only` — recomputed deterministically so incremental and cold indexes always agree.

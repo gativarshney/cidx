@@ -7,7 +7,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Cold discovery and the incremental engine disagreed on junk directories
+  (`.venv`, `node_modules`, `build`, …) that a repository had not
+  gitignored: the cold walk indexed them via `git ls-files` while the
+  incremental path refused them, breaking the convergence invariant and
+  making `cidx check` report drift. The junk-directory skip-list now applies
+  identically in both discovery modes (ADR-014).
 
 ## [0.1.0a1] - 2026-07-30
 

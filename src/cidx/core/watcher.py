@@ -88,7 +88,7 @@ class Watcher:
             relative = Path(raw_path).resolve().relative_to(self._root)
         except (OSError, ValueError):
             return  # outside the watched root
-        if any(part in indexer._FALLBACK_IGNORED_DIRS for part in relative.parts):
+        if any(part in indexer._ALWAYS_IGNORED_DIRS for part in relative.parts):
             return
         self._queue.put(relative.as_posix())
 
