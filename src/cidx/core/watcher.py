@@ -11,6 +11,12 @@ OS watchers drop events under storms, so a periodic reconciliation sweep
 re-stats and re-hashes everything cheaply (the hash short-circuit makes
 unchanged files free) and removes indexed paths that discovery no longer
 lists: fast path for speed, slow path for truth.
+
+The sweep batches the two per-file costs that are global, not local: it
+resolves references once at the end rather than per file, and trusts
+discovery's own filtering instead of re-running ``git check-ignore`` per
+path. Resolution is a whole-index recompute, so doing it per file made a
+cold ``cidx serve`` start O(n^2) (ADR-015).
 """
 
 from __future__ import annotations
@@ -130,14 +136,26 @@ class Watcher:
             path.relative_to(self._root).as_posix()
             for path in indexer.iter_source_files(self._root)
         }
-        for stale in store.indexed_paths() - on_disk:
-            if self._stop_event.is_set():
-                return
-            store.remove_file(stale)
-        for path in on_disk:
-            if self._stop_event.is_set():
-                return
-            incremental.refresh_path(store, self._root, path, self._max_file_bytes)
-        # even an all-unchanged sweep re-resolves: hash short-circuits skip
-        # resolution, and truth includes resolved targets
-        store.resolve_references()
+        try:
+            for stale in store.indexed_paths() - on_disk:
+                if self._stop_event.is_set():
+                    return
+                store.remove_file(stale)
+            for path in on_disk:
+                if self._stop_event.is_set():
+                    return
+                incremental.refresh_path(
+                    store,
+                    self._root,
+                    path,
+                    self._max_file_bytes,
+                    resolve=False,  # batched: resolved once in the finally
+                    check_ignored=False,  # discovery already applied the rules
+                )
+        finally:
+            # Resolution is deferred per file, so it MUST run even when the
+            # sweep exits early on stop -- otherwise the index would be left
+            # holding rows whose references were never resolved. Also why an
+            # all-unchanged sweep still re-resolves: hash short-circuits skip
+            # resolution, and truth includes resolved targets.
+            store.resolve_references()

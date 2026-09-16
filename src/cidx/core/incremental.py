@@ -5,6 +5,13 @@ Otherwise parse, extract, and swap the file's rows in one transaction
 (``Store.replace_file``). Deletes and renames arrive as the same machinery: a
 vanished, oversized, or unsupported path simply has its rows removed.
 
+Callers that already know a path is eligible and that will resolve once at
+the end of a batch (the watcher's reconciliation sweep) pass
+``check_ignored=False`` and ``resolve=False``. Both default to True, so a
+single-path refresh stays self-contained and immediately queryable; skipping
+them in a batch is what keeps a full sweep O(n) instead of O(n^2), because
+``resolve_references`` is a whole-index recompute (ADR-015).
+
 ``check_drift`` proves the invariant on demand: cold-rebuild into a temporary
 database, diff value-level row sets, report every differing row exactly.
 """
@@ -28,12 +35,20 @@ def refresh_path(
     root: str | Path,
     relative_path: str,
     max_file_bytes: int = indexer.DEFAULT_MAX_FILE_BYTES,
+    *,
+    resolve: bool = True,
+    check_ignored: bool = True,
 ) -> Outcome:
     """Bring one path's index rows up to date with the filesystem.
 
     Returns what happened: ``unchanged`` (hash matched, free), ``updated``
     (rows swapped), ``removed`` (path gone/unsupported/oversized and its rows
     dropped), or ``absent`` (nothing on disk and nothing indexed).
+
+    ``resolve=False`` skips the whole-index resolution recompute, and
+    ``check_ignored=False`` skips the ``git check-ignore`` subprocess. Both
+    are safe only for a caller that discovered the path through
+    ``iter_source_files`` and resolves once after the batch; see ADR-015.
     """
     rel = Path(relative_path).as_posix()
     root_path = Path(root)
@@ -42,7 +57,7 @@ def refresh_path(
 
     data: bytes | None = None
     language_id = base.detect_language(absolute)
-    if language_id is not None and indexer.is_ignored(root_path, rel):
+    if language_id is not None and check_ignored and indexer.is_ignored(root_path, rel):
         language_id = None  # discovery would never list it: treat as gone
     if language_id is not None:
         try:
@@ -56,7 +71,8 @@ def refresh_path(
         if known is None:
             return "absent"
         store.remove_file(rel)
-        store.resolve_references()
+        if resolve:
+            store.resolve_references()
         return "removed"
 
     digest = hashing.content_hash(data)
@@ -69,7 +85,8 @@ def refresh_path(
         stat.st_mtime,
         indexer.extract_source(data, language_id),
     )
-    store.resolve_references()
+    if resolve:
+        store.resolve_references()
     return "updated"
 
 

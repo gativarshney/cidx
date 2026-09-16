@@ -15,6 +15,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   incremental path refused them, breaking the convergence invariant and
   making `cidx check` report drift. The junk-directory skip-list now applies
   identically in both discovery modes (ADR-014).
+- `cidx serve` on a repository with no index built it through the watcher's
+  first reconciliation sweep, which recomputed whole-index reference
+  resolution and spawned `git check-ignore` once per file, making a cold
+  start O(n²): Django (3,043 files) had not finished after 400 s. The sweep
+  now resolves once at the end and trusts discovery's filtering; the same
+  cold start completes in about two minutes and converges (ADR-015).
 
 ## [0.1.0a1] - 2026-07-30
 
