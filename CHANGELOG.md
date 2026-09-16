@@ -7,6 +7,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.0a2] - 2026-09-16
+
+Fixes found by auditing cidx on Django (3,043 files) and by CI: two
+superlinear paths, a write-lock race, a silent watcher failure, a blind
+spot in the convergence check, and documentation that now states
+performance at that scale. No new capabilities beyond verification tooling.
+
 ### Added
 
 - `docs/mcp.md`: connecting an agent, what each of the five tools returns,
