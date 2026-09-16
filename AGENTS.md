@@ -32,7 +32,7 @@ The incremental index must always equal what a cold rebuild would produce. Edits
 
 ## Do-not-build list
 
-Rejected with reasons on record (see DECISIONS.md and docs/ARCHITECTURE.md). Do not implement, scaffold, or "leave hooks for": embeddings or semantic search, editing/refactoring tools, third and further languages, call graphs and blast-radius analysis, HTTP transport, editor plugins or VS Code extensions, multi-repo support, web dashboards, LSP integration. If asked for any of these, point to this list.
+Rejected with reasons on record (see DECISIONS.md and ARCHITECTURE.md). Do not implement, scaffold, or "leave hooks for": embeddings or semantic search, editing/refactoring tools, third and further languages, call graphs and blast-radius analysis, HTTP transport, editor plugins or VS Code extensions, multi-repo support, web dashboards, LSP integration. If asked for any of these, point to this list.
 
 ## Performance targets (publish what we measure)
 

@@ -7,6 +7,19 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- `docs/mcp.md`: connecting an agent, what each of the five tools returns,
+  a smoke test, and troubleshooting, written for someone who has never used
+  cidx or MCP.
+- `docs/verification.md`: the Django-scale measurements behind every
+  published number, with the commands to reproduce them.
+- `scripts/mcp_smoke.py` starts `cidx serve` the way a client does, checks
+  that exactly the five tools are registered, and calls one.
+- `scripts/index_fingerprint.py` prints a platform-independent digest of an
+  index, and a manual workflow indexes a pinned revision on Linux and
+  Windows and fails unless both digests match.
+
 ### Fixed
 
 - Cold discovery and the incremental engine disagreed on junk directories

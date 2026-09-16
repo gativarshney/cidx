@@ -61,15 +61,17 @@ cidx stats --repo path/to/your/repo
 
 Every command takes `--json` for machine-readable output.
 
-Add cidx to any MCP-capable coding agent (the watcher keeps the index fresh while serving):
+Add cidx to any MCP-capable coding agent. `cidx serve` builds the index if none exists and keeps it fresh while serving; use an absolute repository path, with forward slashes on Windows:
 
 ```json
 {
   "mcpServers": {
-    "cidx": { "command": "cidx", "args": ["serve", "--repo", "path/to/your/repo"] }
+    "cidx": { "command": "uvx", "args": ["cidx", "serve", "--repo", "/absolute/path/to/repo"] }
   }
 }
 ```
+
+(or `"command": "cidx", "args": ["serve", "--repo", ...]` when cidx is installed on the PATH). Client setup, what each of the five tools returns, a smoke test, and troubleshooting: [docs/mcp.md](docs/mcp.md).
 
 ## Measured performance
 
@@ -84,7 +86,19 @@ Measured 2026-07-28 on a mid-range Windows 11 laptop (Python 3.13), against a sy
 | Query p95: fuzzy search (FTS) | < 50 ms | **22.1 ms** |
 | Query p95: outline / repo_map | < 50 ms | **5.3 ms / 20.2 ms** |
 
-Test suite: **241 tests** (golden-file extractor tests, the property-based convergence suite, MCP-over-stdio integration tests), green on CI across {Ubuntu, macOS, Windows} × {Python 3.11, 3.12, 3.13}.
+That corpus is small. On Django (3,043 files, 76k symbols, 207k references; measured 2026-09-16 on the same laptop) the shape changes. Every run, and the commands to reproduce it, is in [docs/verification.md](docs/verification.md):
+
+| Metric (Django) | Measured |
+|---|---|
+| `cidx index`, empty cache | **30.5 s** with a warm file cache; 68–97 s cold |
+| `cidx serve` from an empty cache until every file is indexed | **123 s** |
+| `cidx index` again over the existing index | 45.6 s (unfinished at 684 s before the foreign-key indexes) |
+| Save → definitions queryable, real watcher | **0.33 s** for an isolated save; **1.8 s** p50 back-to-back, because the whole-index re-resolution after each save takes ~1.5 s at this size |
+| Query p95: find_definition / find_references | 22.6 ms / 27.0 ms |
+| Query p95: search_symbols (ranked) / repo_map | 138.8 ms / 134.7 ms — over the 50 ms target at this scale |
+| `cidx check` | 24–59 s, no drift |
+
+Test suite: **260 tests** (golden-file extractor tests, the property-based convergence suite, MCP-over-stdio integration tests), green on CI across {Ubuntu, macOS, Windows} × {Python 3.11, 3.12, 3.13}.
 
 ## Known limitations (v1, stated on purpose)
 
@@ -99,9 +113,14 @@ Test suite: **241 tests** (golden-file extractor tests, the property-based conve
 - **Reference resolution has no type checker.** Confidence tags (`exact`,
   `import`, `name-only`) state how each reference was resolved rather than
   promising precision; the evaluation harness can measure it per tier.
-- An index can be momentarily stale between a save and the watcher's update
-  (~100 ms) — every response carries an `index_age_ms` freshness stamp, and
-  `cidx check` can prove convergence at any time.
+- **After a save, freshness costs grow with the repository.** The saved
+  file's own rows land in about 0.3 s, but references are then re-resolved
+  across the whole index — milliseconds on a small project, about 1.5 s on
+  Django — so back-to-back saves queue behind it. Every response carries an
+  `index_age_ms` freshness stamp, and `cidx check` can prove convergence at
+  any time.
+- **Ranked search and the repository map scan.** `search_symbols` and
+  `repo_map` take ~135 ms p95 on Django; exact lookups stay under 30 ms.
 
 ## Evaluation harness (optional)
 
@@ -114,6 +133,8 @@ This repository also contains `benchmark/`: a complete, tested harness for measu
 - [DECISIONS.md](DECISIONS.md): every architectural decision, with reasons, dated
 - [benchmark/methodology.md](benchmark/methodology.md): how measurements are made, written before the first run
 - [AGENTS.md](AGENTS.md): the engineering working contract for this repo
+- [docs/mcp.md](docs/mcp.md): connecting an agent, what the five tools return, troubleshooting
+- [docs/verification.md](docs/verification.md): every measurement behind the numbers above, with the commands to reproduce them
 
 ## Who is building this
 
