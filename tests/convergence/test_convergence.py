@@ -149,3 +149,45 @@ class TestCrashRecovery:
 
             incremental.refresh_path(live, root, "a.py")
             assert_converged(root, live)
+
+    def test_crash_inside_the_transaction_rolls_back_partial_rows(
+        self, tmp_path: Path
+    ) -> None:
+        """The atomicity claim proper: a failure AFTER the file row and symbol
+        rows are inserted, but before COMMIT, must leave the index exactly as
+        it was. (The test above fails before the transaction opens, which
+        only shows that an untouched database stays untouched.)"""
+        root = tmp_path / "repo"
+        root.mkdir()
+        (root / "a.py").write_bytes(b"def one():\n    return helper()\n")
+        with Store.open(tmp_path / "db" / "live.db") as live:
+            incremental.refresh_path(live, root, "a.py")
+            before = live.snapshot()
+            (root / "a.py").write_bytes(b"def two():\n    return other()\n")
+            real = live.connection
+
+            class ExplodeOnRefsInsert:
+                """Delegates to the real connection, but fails on the refs
+                insert -- which replace_file issues only after the files row
+                and every symbol row are already in the open transaction."""
+
+                def __getattr__(self, name: str):
+                    return getattr(real, name)
+
+                def executemany(self, sql: str, params):
+                    if sql.lstrip().startswith("INSERT INTO refs"):
+                        # self-check: the injection really is mid-transaction
+                        assert real.in_transaction
+                        raise RuntimeError("simulated crash inside the transaction")
+                    return real.executemany(sql, params)
+
+            live._connection = ExplodeOnRefsInsert()
+            try:
+                with pytest.raises(RuntimeError):
+                    incremental.refresh_path(live, root, "a.py")
+            finally:
+                live._connection = real
+            assert not real.in_transaction, "transaction left open after failure"
+            assert live.snapshot() == before, "partially inserted rows survived"
+            incremental.refresh_path(live, root, "a.py")  # and it recovers
+            assert_converged(root, live)
