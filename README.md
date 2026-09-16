@@ -110,6 +110,9 @@ Test suite: **260 tests** (golden-file extractor tests, the property-based conve
 - **No semantic or conceptual search** — by design (ADR-007): retrieval works
   on names, references, and file structure, so "where is auth handled?"
   style questions are out of scope for v1.
+- **Namespace imports are not followed.** `import * as core from "./core.js"`
+  binds `core`, so `core.thing()` resolves by unique global name at best,
+  never through the import.
 - **Reference resolution has no type checker.** Confidence tags (`exact`,
   `import`, `name-only`) state how each reference was resolved rather than
   promising precision; the evaluation harness can measure it per tier.

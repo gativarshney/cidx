@@ -65,6 +65,12 @@ performance at that scale. No new capabilities beyond verification tooling.
   JavaScript yields distinct functions with identical rows; Django's
   vendored select2 has eleven). Snapshots are now multisets: counts must
   match too.
+- TypeScript and ESM JavaScript imports whose specifier carries an emitted
+  extension (`./core.js`, as NodeNext resolution requires) never resolved
+  through the import: candidates were built from the specifier verbatim
+  (`core.js.ts`). On zod, 0 of 53,535 references carried the `import`
+  confidence. Such specifiers now map to the TypeScript source and, for
+  plain JavaScript, to the literal file.
 
 ### Changed
 

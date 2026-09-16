@@ -190,5 +190,6 @@ def _js_candidates(target: str, importing_path: str) -> list[tuple[str, str]]:
     base = posixpath.normpath(posixpath.join(posixpath.dirname(importing_path), module))
     stem, extension = posixpath.splitext(base)
     if extension in _EMITTED_EXTENSIONS:
-        return [(stem + suffix, symbol_name) for suffix in _EMITTED_EXTENSIONS[extension]]
+        suffixes = _EMITTED_EXTENSIONS[extension]
+        return [(stem + suffix, symbol_name) for suffix in suffixes]
     return [(base + suffix, symbol_name) for suffix in _JS_SUFFIXES]

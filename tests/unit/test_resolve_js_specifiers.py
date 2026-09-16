@@ -35,7 +35,8 @@ def test_import_confidence_fires_through_a_js_specifier(tmp_path: Path) -> None:
     )
     with Store.open(tmp_path / "index.db") as store:
         indexer.index_repository(repo, store)
-        refs = [r for r in query.find_references(store, "thing") if r.path == "src/index.ts"]
+        rows = query.find_references(store, "thing")
+        refs = [r for r in rows if r.path == "src/index.ts"]
     assert refs, "the call inside run() must be a reference"
     assert (refs[0].confidence, refs[0].resolved_path) == ("import", "src/core.ts")
 
@@ -49,6 +50,7 @@ def test_plain_javascript_esm_specifier_resolves_to_the_js_file(tmp_path: Path) 
     )
     with Store.open(tmp_path / "index.db") as store:
         indexer.index_repository(repo, store)
-        refs = [r for r in query.find_references(store, "thing") if r.path == "index.js"]
+        rows = query.find_references(store, "thing")
+        refs = [r for r in rows if r.path == "index.js"]
     assert refs
     assert (refs[0].confidence, refs[0].resolved_path) == ("import", "core.js")
