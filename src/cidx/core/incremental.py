@@ -13,7 +13,7 @@ them in a batch is what keeps a full sweep O(n) instead of O(n^2), because
 ``resolve_references`` is a whole-index recompute (ADR-015).
 
 ``check_drift`` proves the invariant on demand: cold-rebuild into a temporary
-database, diff value-level row sets, report every differing row exactly.
+database, diff value-level row multisets, report every differing row exactly.
 """
 
 from __future__ import annotations
@@ -104,7 +104,11 @@ def check_drift(
     store: Store,
     max_file_bytes: int = indexer.DEFAULT_MAX_FILE_BYTES,
 ) -> list[Drift]:
-    """Diff the live index against a cold rebuild; empty means converged."""
+    """Diff the live index against a cold rebuild; empty means converged.
+
+    Snapshots are multisets, so a row present twice in one and once in the
+    other is reported once, with the surplus copy listed as missing or extra.
+    """
     with tempfile.TemporaryDirectory(prefix="cidx-check-") as tmp:
         with Store.open(Path(tmp) / "check.db") as fresh:
             indexer.index_repository(root, fresh, max_file_bytes)
@@ -118,8 +122,8 @@ def check_drift(
             drifts.append(
                 Drift(
                     table=table,
-                    missing=tuple(sorted(missing, key=repr)),
-                    extra=tuple(sorted(extra, key=repr)),
+                    missing=tuple(sorted(missing.elements(), key=repr)),
+                    extra=tuple(sorted(extra.elements(), key=repr)),
                 )
             )
     return drifts

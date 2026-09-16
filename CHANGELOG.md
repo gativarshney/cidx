@@ -40,6 +40,11 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 - `cidx query` fell back to raw FTS matching while the MCP `search_symbols`
   tool used the ranker, so the two consumers could order fuzzy results
   differently. The CLI fallback now calls the same ranked search.
+- `cidx check` and the convergence suite compared row *sets*, so an index
+  missing one of several identical rows still passed (minified one-line
+  JavaScript yields distinct functions with identical rows; Django's
+  vendored select2 has eleven). Snapshots are now multisets: counts must
+  match too.
 
 ### Changed
 

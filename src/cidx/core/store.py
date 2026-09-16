@@ -19,6 +19,7 @@ from __future__ import annotations
 import re
 import sqlite3
 import time
+from collections import Counter
 from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
@@ -223,20 +224,23 @@ class Store:
             row["path"] for row in self._connection.execute("SELECT path FROM files")
         }
 
-    def snapshot(self) -> dict[str, set[tuple]]:
-        """Value-level row sets for convergence comparison.
+    def snapshot(self) -> dict[str, Counter[tuple]]:
+        """Value-level row multisets for convergence comparison.
 
         Ids and timestamps are excluded on purpose: two databases describing
-        the same repository state must produce equal snapshots.
+        the same repository state must produce equal snapshots. Rows are
+        counted, not merely collected: minified one-line JavaScript yields
+        distinct functions whose rows are identical, and a converged index
+        must hold the same number of each.
         """
         connection = self._connection
-        files = {
+        files = Counter(
             (row["path"], row["language"], row["content_hash"])
             for row in connection.execute(
                 "SELECT path, language, content_hash FROM files"
             )
-        }
-        symbols = {
+        )
+        symbols = Counter(
             tuple(row)
             for row in connection.execute(
                 "SELECT f.path, s.name, s.qualified_name, s.kind, s.start_line,"
@@ -244,8 +248,8 @@ class Store:
                 " FROM symbols s JOIN files f ON f.id = s.file_id"
                 " LEFT JOIN symbols p ON p.id = s.parent_id"
             )
-        }
-        refs = {
+        )
+        refs = Counter(
             tuple(row)
             for row in connection.execute(
                 "SELECT f.path, r.name, r.line, r.confidence,"
@@ -254,7 +258,7 @@ class Store:
                 " LEFT JOIN symbols rs ON rs.id = r.resolved_symbol_id"
                 " LEFT JOIN files rf ON rf.id = rs.file_id"
             )
-        }
+        )
         return {"files": files, "symbols": symbols, "refs": refs}
 
     def stats(self) -> dict[str, int]:
