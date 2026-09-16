@@ -1,8 +1,15 @@
 """SQLite persistence for the cidx index.
 
 Discipline (AGENTS.md): WAL mode, ``synchronous=NORMAL``, foreign keys on,
-every multi-row mutation inside one explicit transaction, and
-``schema_version`` checked on open. The FTS5 table uses external content
+every multi-row mutation inside one explicit transaction that begins
+IMMEDIATE, and ``schema_version`` checked on open. IMMEDIATE matters: a
+deferred transaction that reads before its first write holds a read
+snapshot, and if another connection commits meanwhile the write fails at
+once with "database is locked" (SQLITE_BUSY_SNAPSHOT) -- the busy timeout is
+never consulted, because waiting cannot make a stale snapshot current.
+Taking the write lock up front makes concurrent writers wait instead.
+
+The FTS5 table uses external content
 (``content='symbols'``), so this module keeps it in sync inside the same
 transaction as each mutation.
 """
@@ -102,7 +109,7 @@ class Store:
         update the file record. A crash mid-update rolls back cleanly.
         """
         connection = self._connection
-        connection.execute("BEGIN")
+        connection.execute("BEGIN IMMEDIATE")
         try:
             self._delete_file_rows(path)
             cursor = connection.execute(
@@ -154,7 +161,7 @@ class Store:
     def remove_file(self, path: str) -> None:
         """Remove one file and all its rows; a no-op if the path is unknown."""
         connection = self._connection
-        connection.execute("BEGIN")
+        connection.execute("BEGIN IMMEDIATE")
         try:
             self._delete_file_rows(path)
             connection.execute("COMMIT")
@@ -169,7 +176,7 @@ class Store:
         and cold indexes agree on resolved targets.
         """
         connection = self._connection
-        connection.execute("BEGIN")
+        connection.execute("BEGIN IMMEDIATE")
         try:
             resolve.resolve_all(connection)
             connection.execute("COMMIT")

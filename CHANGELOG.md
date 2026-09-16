@@ -27,6 +27,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   ran past 11 minutes and every single-file save paid a 360 ms scan. The
   three indexes are now part of the schema; the re-index takes 46 s and the
   per-file delete 2 ms (ADR-016).
+- Write transactions used a deferred `BEGIN` and read before writing, so a
+  second connection committing in between made the first write fail at
+  once with "database is locked" (SQLITE_BUSY_SNAPSHOT, which bypasses the
+  busy timeout). Seen on CI as the watcher's consumer thread dying during
+  its first sweep. Every mutation now begins `IMMEDIATE`, so concurrent
+  writers wait their turn.
 
 ### Changed
 
