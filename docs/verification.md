@@ -133,9 +133,26 @@ subprocess over stdio (the same mechanism as
 repository. Note that 0.1.0a1 predates ADR-014/015/016: re-indexing and
 `serve` on a large repository are slow in that release.
 
+## TypeScript on a real repository (zod, cidx 35899c1)
+
+`colinhacks/zod` at 59bbc03 (511 TypeScript files): `cidx index` → 522
+files, 6,211 symbols, 53,535 references in 13.8 s; `cidx check` → no
+drift; `cidx query ZodString` → `packages/zod/src/v3/types.ts:731` with
+its `extends` clause; references tagged `[exact]`; symbol kinds in the
+TypeScript files alone: 71 classes, 779 methods, 1,514 functions, 1,677
+consts, 1,921 imports, plus TSX and JavaScript files.
+
+Confidence before and after the emitted-extension fix (a5980d8):
+`import` 0 → 853, `exact` 4,185 unchanged, `name-only` 49,350 → 48,497.
+The remaining name-only majority is structural: zod imports modules as
+namespaces (`import * as core from "./core.js"`) and calls
+`core.$constructor(...)`, which binds `core`, not the member, so those
+references resolve by unique global name at best. Recorded as a known
+limitation in the README.
+
 ## Correctness
 
-- Test suite: 260 tests (`pytest -q`), ruff clean, at cidx 37cb720.
+- Test suite: 263 tests (`pytest -q`), ruff clean, at cidx 35899c1.
 - Property suite (`tests/convergence/`): Hypothesis generates up to 12
   random writes, deletes, and renames over eight paths (Python, TypeScript,
   TSX, JavaScript, a non-code file, a junk-directory file) and eight

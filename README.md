@@ -98,7 +98,7 @@ That corpus is small. On Django (3,043 files, 76k symbols, 207k references; meas
 | Query p95: search_symbols (ranked) / repo_map | 138.8 ms / 134.7 ms — over the 50 ms target at this scale |
 | `cidx check` | 24–59 s, no drift |
 
-Test suite: **260 tests** (golden-file extractor tests, the property-based convergence suite, MCP-over-stdio integration tests), green on CI across {Ubuntu, macOS, Windows} × {Python 3.11, 3.12, 3.13}.
+Test suite: **263 tests** (golden-file extractor tests, the property-based convergence suite, MCP-over-stdio integration tests), green on CI across {Ubuntu, macOS, Windows} × {Python 3.11, 3.12, 3.13}.
 
 ## Known limitations (v1, stated on purpose)
 
