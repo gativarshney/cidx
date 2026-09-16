@@ -1,0 +1,78 @@
+name: Cross-platform index check
+
+# Indexes one pinned revision of a public repository on Linux and on Windows
+# and requires the two indexes to be identical, value for value: same files,
+# symbols, references, and resolved targets (scripts/index_fingerprint.py).
+# Manual trigger; the defaults reproduce the Django measurement recorded in
+# docs/verification.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: "GitHub repository to index (owner/name)"
+        default: "django/django"
+        required: true
+      revision:
+        description: "Commit SHA to index"
+        default: "2b30f6255b5ef84afbd827993643d52ef2c0963a"
+        required: true
+
+jobs:
+  fingerprint:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install cidx
+        run: python -m pip install .
+
+      - name: Clone the pinned revision
+        shell: bash
+        run: |
+          git init --quiet target
+          git -C target remote add origin "https://github.com/${{ inputs.repository }}.git"
+          git -C target fetch --quiet --depth 1 origin "${{ inputs.revision }}"
+          git -C target checkout --quiet FETCH_HEAD
+
+      - name: Index, fingerprint, and verify convergence
+        shell: bash
+        run: |
+          cidx index --repo target
+          python scripts/index_fingerprint.py --repo target | tee "fingerprint-${{ matrix.os }}.txt"
+          cidx check --repo target
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fingerprint-${{ matrix.os }}
+          path: fingerprint-*.txt
+
+  compare:
+    name: identical on both platforms
+    needs: fingerprint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: fingerprint-*
+          merge-multiple: true
+
+      - name: Require identical fingerprints
+        shell: bash
+        run: |
+          cat fingerprint-*.txt
+          distinct=$(sed 's/.*sha256=//' fingerprint-*.txt | sort -u | wc -l)
+          if [ "$distinct" -ne 1 ]; then
+            echo "::error::index contents differ between platforms"
+            exit 1
+          fi
+          echo "identical index contents on every platform"
