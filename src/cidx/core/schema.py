@@ -2,12 +2,14 @@
 
 ``schema_version`` in ``meta`` lets a newer cidx detect an old index and
 rebuild instead of misreading it. ``ON DELETE CASCADE`` makes "remove a
-file's rows" one statement.
+file's rows" one statement, and every foreign-key column carries an index so
+that statement seeks instead of scanning: without them each file replacement
+walked the whole ``symbols`` and ``refs`` tables (ADR-016).
 """
 
 from __future__ import annotations
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 SCHEMA_SQL = """
 CREATE TABLE files (
@@ -44,6 +46,10 @@ CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);  -- schema_version, engine
 CREATE INDEX idx_symbols_name ON symbols(name);
 CREATE INDEX idx_refs_name ON refs(name);
 CREATE INDEX idx_refs_symbol ON refs(resolved_symbol_id);
+-- foreign-key columns: cascades and the parent self-reference must seek
+CREATE INDEX idx_symbols_file ON symbols(file_id);
+CREATE INDEX idx_symbols_parent ON symbols(parent_id);
+CREATE INDEX idx_refs_file ON refs(file_id);
 """
 
 #: Every named object the DDL creates, dropped in reverse-dependency order

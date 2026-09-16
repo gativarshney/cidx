@@ -112,9 +112,12 @@ CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT);  -- schema_version, engine
 CREATE INDEX idx_symbols_name ON symbols(name);
 CREATE INDEX idx_refs_name ON refs(name);
 CREATE INDEX idx_refs_symbol ON refs(resolved_symbol_id);
+CREATE INDEX idx_symbols_file ON symbols(file_id);
+CREATE INDEX idx_symbols_parent ON symbols(parent_id);
+CREATE INDEX idx_refs_file ON refs(file_id);
 ```
 
-`ON DELETE CASCADE` makes "remove a file's rows" one statement. `schema_version` in `meta` lets a newer cidx detect an old index and rebuild instead of misreading it.
+`ON DELETE CASCADE` makes "remove a file's rows" one statement, and every foreign-key column is indexed so that statement is a seek rather than a scan of `symbols` and `refs` (ADR-016). `schema_version` in `meta` lets a newer cidx detect an old index and rebuild instead of misreading it.
 
 **Incremental engine.** The heart. Invariant: incremental result equals cold rebuild, always. Per changed path: stat, hash; if hash unchanged, stop (free). Else parse, extract, then a single transaction: delete the file's rows, insert new rows, update the file record. Deletes and renames are the same machinery. Branch switches arrive as event storms: the queue coalesces to one pending entry per path and the hash check discards the untouched majority. Crash mid-update: the transaction rolls back; the index is never half-written. `cidx check` cold-rebuilds into a temp file and diffs row sets against the live index; any drift is printed exactly and doubles as a new convergence test case.
 

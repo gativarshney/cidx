@@ -21,6 +21,18 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   start O(n²): Django (3,043 files) had not finished after 400 s. The sweep
   now resolves once at the end and trusts discovery's filtering; the same
   cold start completes in about two minutes and converges (ADR-015).
+- Foreign-key columns (`symbols.file_id`, `symbols.parent_id`,
+  `refs.file_id`) had no index, so replacing one file's rows in a populated
+  index scanned the whole `symbols` and `refs` tables: on Django a re-index
+  ran past 11 minutes and every single-file save paid a 360 ms scan. The
+  three indexes are now part of the schema; the re-index takes 46 s and the
+  per-file delete 2 ms (ADR-016).
+
+### Changed
+
+- Schema version is now 2. An index built by an earlier cidx is rebuilt
+  automatically on first open; the next `cidx index` or `cidx serve` then
+  repopulates it (a one-time cost equal to a fresh build).
 
 ## [0.1.0a1] - 2026-07-30
 
