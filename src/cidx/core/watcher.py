@@ -21,6 +21,7 @@ cold ``cidx serve`` start O(n^2) (ADR-015).
 
 from __future__ import annotations
 
+import logging
 import queue
 import threading
 import time
@@ -34,6 +35,8 @@ from cidx.core.store import Store
 
 DEFAULT_DEBOUNCE_SECONDS = 0.1
 DEFAULT_SWEEP_INTERVAL_SECONDS = 30.0
+
+logger = logging.getLogger(__name__)
 
 
 class _EventHandler(FileSystemEventHandler):
@@ -123,11 +126,20 @@ class Watcher:
                         del pending[path]
                         # gitignored paths are refused by the engine itself
                         # (indexer.is_ignored inside refresh_path)
-                        incremental.refresh_path(
-                            store, self._root, path, self._max_file_bytes
-                        )
+                        try:
+                            incremental.refresh_path(
+                                store, self._root, path, self._max_file_bytes
+                            )
+                        except Exception:
+                            # one failing path must not kill this thread:
+                            # serve would keep answering from a silently
+                            # stale index. The next sweep retries the path.
+                            logger.exception("refresh of %s failed", path)
                 if now >= next_sweep:
-                    self._sweep(store)
+                    try:
+                        self._sweep(store)
+                    except Exception:
+                        logger.exception("reconciliation sweep failed")
                     next_sweep = time.monotonic() + self._sweep_interval
 
     def _sweep(self, store: Store) -> None:

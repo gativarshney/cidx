@@ -183,3 +183,31 @@ class TestLatency:
         # regression guard sized for loaded CI runners; the measured target
         # (<150ms, ARCHITECTURE.md) is the printed number above
         assert p95 < 5.0
+
+
+class TestResilience:
+    def test_consumer_survives_a_failing_refresh(
+        self, repo: Path, reader: Store, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """One path that blows up must not kill the consumer thread: serve
+        would keep running against a silently stale index with no signal."""
+        import threading
+
+        from cidx.core import incremental
+
+        real = incremental.refresh_path
+        attempted = threading.Event()
+
+        def poisoned(store, root, relative_path, *args, **kwargs):
+            if relative_path == "poison.py":
+                attempted.set()
+                raise RuntimeError("simulated engine failure")
+            return real(store, root, relative_path, *args, **kwargs)
+
+        monkeypatch.setattr(incremental, "refresh_path", poisoned)
+        (repo / "poison.py").write_bytes(b"def poisoned():\n    pass\n")
+        assert wait_for(attempted.is_set), "the poisoned path was never attempted"
+        (repo / "healthy.py").write_bytes(b"def healthy_symbol():\n    pass\n")
+        assert wait_for(lambda: bool(reader.lookup_exact("healthy_symbol"))), (
+            "the consumer thread died on the failing path"
+        )

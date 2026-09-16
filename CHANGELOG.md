@@ -33,6 +33,10 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   busy timeout). Seen on CI as the watcher's consumer thread dying during
   its first sweep. Every mutation now begins `IMMEDIATE`, so concurrent
   writers wait their turn.
+- An unhandled exception in the watcher's consumer thread killed it
+  silently, leaving `cidx serve` answering from a stale index. A failing
+  refresh or sweep is now logged and the thread continues; the next sweep
+  retries.
 
 ### Changed
 
