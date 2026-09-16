@@ -213,3 +213,28 @@ class TestBareInvocation:
     ) -> None:
         assert main([]) == 0
         assert "usage: cidx" in capsys.readouterr().out
+
+
+def test_fuzzy_fallback_uses_the_ranked_search_path(
+    repo: Path,
+    isolated_cache: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """The CLI and the MCP server share one fuzzy-search implementation, so
+    `cidx query` and `search_symbols` cannot rank differently."""
+    from cidx.ranking import scorer
+
+    main(["index", "--repo", str(repo)])
+    capsys.readouterr()
+    calls: list[str] = []
+    real = scorer.search_symbols
+
+    def recording(store, text, *args, **kwargs):
+        calls.append(text)
+        return real(store, text, *args, **kwargs)
+
+    monkeypatch.setattr(scorer, "search_symbols", recording)
+    assert main(["query", "sav", "--repo", str(repo)]) == 0
+    assert calls == ["sav"]
+    assert "Repo.save" in capsys.readouterr().out

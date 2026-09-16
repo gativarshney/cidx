@@ -37,6 +37,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   silently, leaving `cidx serve` answering from a stale index. A failing
   refresh or sweep is now logged and the thread continues; the next sweep
   retries.
+- `cidx query` fell back to raw FTS matching while the MCP `search_symbols`
+  tool used the ranker, so the two consumers could order fuzzy results
+  differently. The CLI fallback now calls the same ranked search.
 
 ### Changed
 

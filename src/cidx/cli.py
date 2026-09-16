@@ -19,6 +19,7 @@ from pathlib import Path
 from cidx.core import incremental, indexer, query, repoid
 from cidx.core.query import OutlineRow, ReferenceRow, RepoMapEntry
 from cidx.core.store import Store, SymbolRow
+from cidx.ranking import scorer
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -179,7 +180,9 @@ def _run_query(args: argparse.Namespace) -> int:
             )
         matches: list = query.find_definition(store, args.name, limit=args.limit)
         if not matches:
-            matches = store.search(args.name, limit=args.limit)
+            # the same ranked search the MCP server exposes, so the two
+            # consumers never drift (ARCHITECTURE: no logic in the CLI)
+            matches, _ = scorer.search_symbols(store, args.name, limit=args.limit)
         return _emit(
             args,
             matches,
