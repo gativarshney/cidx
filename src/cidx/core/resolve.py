@@ -32,6 +32,20 @@ _JS_SUFFIXES = (
     "/index.jsx",
 )
 
+#: A specifier that names an emitted extension, as NodeNext-style TypeScript
+#: and ESM JavaScript require (`./core.js`), means the TypeScript source when
+#: one exists and the literal file otherwise.
+_EMITTED_EXTENSIONS: dict[str, tuple[str, ...]] = {
+    ".js": (".ts", ".tsx", ".js"),
+    ".jsx": (".tsx", ".jsx"),
+    ".mjs": (".mts", ".mjs"),
+    ".cjs": (".cts", ".cjs"),
+    ".ts": (".ts",),
+    ".tsx": (".tsx",),
+    ".mts": (".mts",),
+    ".cts": (".cts",),
+}
+
 
 @dataclass(frozen=True, slots=True)
 class _Def:
@@ -174,4 +188,7 @@ def _js_candidates(target: str, importing_path: str) -> list[tuple[str, str]]:
     if not module.startswith("."):
         return []  # bare specifiers live in node_modules, outside the index
     base = posixpath.normpath(posixpath.join(posixpath.dirname(importing_path), module))
+    stem, extension = posixpath.splitext(base)
+    if extension in _EMITTED_EXTENSIONS:
+        return [(stem + suffix, symbol_name) for suffix in _EMITTED_EXTENSIONS[extension]]
     return [(base + suffix, symbol_name) for suffix in _JS_SUFFIXES]
