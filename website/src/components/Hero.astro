@@ -232,10 +232,21 @@ const readyStatus = `${formatNumber(counts.files)} files · ${formatNumber(count
 		z-index: -1;
 	}
 
+	/* The graph fades out under the navbar so the links stay readable, and on
+	   wide screens also behind the headline. */
+	.graph canvas,
+	.graph .labels,
+	.fallback {
+		mask-image: linear-gradient(to bottom, transparent 2.75rem, #000 7.5rem);
+	}
+
 	@media (min-width: 960px) {
 		.graph canvas,
 		.graph .labels {
-			mask-image: linear-gradient(to right, transparent 8%, rgb(0 0 0 / 0.22) 30%, #000 50%);
+			mask-image:
+				linear-gradient(to bottom, transparent 2.75rem, #000 7.5rem),
+				linear-gradient(to right, transparent 8%, rgb(0 0 0 / 0.22) 30%, #000 50%);
+			mask-composite: intersect;
 		}
 	}
 

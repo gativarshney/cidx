@@ -103,6 +103,8 @@ const links = [
 		top: 0;
 		z-index: 50;
 		border-bottom: 1px solid transparent;
+		/* a soft backdrop even at the top of the page, so links never sit on bare artwork */
+		background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 88%, transparent), transparent);
 		transition:
 			background 0.25s,
 			border-color 0.25s;
