@@ -1,0 +1,32 @@
+/* Map the site tokens onto Starlight so docs and landing page share one look. */
+
+:root {
+	--sl-font: var(--font-sans);
+	--sl-font-mono: var(--font-mono);
+	--sl-color-accent-low: #1a2050;
+	--sl-color-accent: #6f80f0;
+	--sl-color-accent-high: #c3ccff;
+	--sl-color-white: #e9ebf2;
+	--sl-color-gray-1: #d5d9e5;
+	--sl-color-gray-2: #b4bacb;
+	--sl-color-gray-3: #8690a6;
+	--sl-color-gray-4: #4a5266;
+	--sl-color-gray-5: #2b3245;
+	--sl-color-gray-6: #10131a;
+	--sl-color-black: #0a0c11;
+}
+
+:root[data-theme='light'] {
+	--sl-color-accent-low: #dde1ff;
+	--sl-color-accent: #3443c4;
+	--sl-color-accent-high: #1b2577;
+	--sl-color-white: #14161d;
+	--sl-color-gray-1: #363b49;
+	--sl-color-gray-2: #4a5060;
+	--sl-color-gray-3: #5b6272;
+	--sl-color-gray-4: #a3a195;
+	--sl-color-gray-5: #dedcd3;
+	--sl-color-gray-6: #eeede8;
+	--sl-color-gray-7: #f6f5f1;
+	--sl-color-black: #f6f5f1;
+}

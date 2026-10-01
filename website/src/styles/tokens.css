@@ -1,0 +1,56 @@
+/* Design tokens shared by the landing page and the Starlight docs theme. */
+
+:root {
+	--font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--font-mono: 'JetBrains Mono Variable', ui-monospace, 'Cascadia Code', Consolas, monospace;
+	--font-display: 'Instrument Serif', Georgia, 'Times New Roman', serif;
+
+	--bg: #0a0c11;
+	--bg-raised: #10131a;
+	--bg-sunken: #07080c;
+	--line: #1d2230;
+	--line-strong: #2b3245;
+	--text: #e9ebf2;
+	--text-soft: #b4bacb;
+	--muted: #8690a6;
+	--accent: #93a3ff;
+	--accent-strong: #b3bfff;
+	--accent-ink: #0a0c11;
+	--exact: #5fe0c4;
+	--import: #93a3ff;
+	--name-only: #f2b866;
+	--danger: #ff8a7a;
+	--shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+
+	/* 3D graph */
+	--g-class: #b3bfff;
+	--g-function: #5fe0c4;
+	--g-method: #6f8cff;
+	--g-const: #f2b866;
+	color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+	--bg: #f6f5f1;
+	--bg-raised: #ffffff;
+	--bg-sunken: #eeede8;
+	--line: #dedcd3;
+	--line-strong: #c4c2b8;
+	--text: #14161d;
+	--text-soft: #363b49;
+	--muted: #5b6272;
+	--accent: #3443c4;
+	--accent-strong: #2331a3;
+	--accent-ink: #ffffff;
+	--exact: #0b7a66;
+	--import: #3443c4;
+	--name-only: #9a5b00;
+	--danger: #b3261e;
+	--shadow: 0 24px 60px rgba(20, 22, 29, 0.12);
+
+	--g-class: #3443c4;
+	--g-function: #0b7a66;
+	--g-method: #5a6bd8;
+	--g-const: #b06a00;
+	color-scheme: light;
+}

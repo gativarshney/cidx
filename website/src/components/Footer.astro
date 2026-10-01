@@ -1,0 +1,102 @@
+---
+import { AUTHOR, href, LICENSE_URL, PYPI_URL, REPO_URL } from '../util/site';
+
+const project = [
+	{ label: 'GitHub repository', to: REPO_URL },
+	{ label: 'PyPI package', to: PYPI_URL },
+	{ label: 'License (Apache-2.0)', to: LICENSE_URL },
+	{ label: 'Contributing guide', to: `${REPO_URL}/blob/main/CONTRIBUTING.md` },
+];
+const author = [
+	{ label: 'LinkedIn', to: AUTHOR.linkedin },
+	{ label: 'GitHub', to: AUTHOR.github },
+	{ label: 'Portfolio', to: AUTHOR.portfolio },
+];
+---
+
+<footer class="footer">
+	<div class="wrap grid">
+		<div class="about">
+			<a class="brand" href={href('/')}>cidx</a>
+			<p>A zero-config local code index for AI coding agents.</p>
+			<p class="built">
+				Built by <a href={AUTHOR.portfolio}>{AUTHOR.name}</a>
+			</p>
+		</div>
+		<nav aria-label="Project">
+			<h2>Project</h2>
+			<ul>
+				{project.map((link) => <li><a href={link.to}>{link.label}</a></li>)}
+			</ul>
+		</nav>
+		<nav aria-label="Author">
+			<h2>{AUTHOR.name}</h2>
+			<ul>
+				{author.map((link) => <li><a href={link.to} rel="me">{link.label}</a></li>)}
+			</ul>
+		</nav>
+	</div>
+</footer>
+
+<style>
+	.footer {
+		border-top: 1px solid var(--line);
+		padding-block: 3.5rem;
+		font-size: 0.9rem;
+		color: var(--text-soft);
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: 1.6fr 1fr 1fr;
+		gap: 2.5rem;
+	}
+
+	.brand {
+		font-family: var(--font-mono);
+		font-weight: 600;
+		font-size: 1.1rem;
+		color: var(--text);
+	}
+
+	.about p {
+		margin-top: 0.5rem;
+		max-width: 22rem;
+	}
+
+	.built {
+		color: var(--muted);
+	}
+
+	.built a {
+		color: var(--text);
+		border-bottom: 1px solid var(--line-strong);
+	}
+
+	h2 {
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		font-weight: 500;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--muted);
+		margin-bottom: 0.9rem;
+	}
+
+	li + li {
+		margin-top: 0.45rem;
+	}
+
+	a:hover {
+		color: var(--accent);
+	}
+
+	@media (max-width: 720px) {
+		.grid {
+			grid-template-columns: 1fr 1fr;
+		}
+		.about {
+			grid-column: 1 / -1;
+		}
+	}
+</style>

@@ -1,0 +1,76 @@
+---
+interface Props {
+	text: string;
+	label?: string;
+}
+
+const { text, label = 'Copy to clipboard' } = Astro.props;
+---
+
+<button class="copy" type="button" data-copy={text} aria-label={label}>
+	<svg class="idle" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V6a2 2 0 0 1 2-2h9"></path></svg>
+	<svg class="done" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>
+	<span class="sr-only" aria-live="polite" data-copy-status></span>
+</button>
+
+<script>
+	document.addEventListener('click', async (event) => {
+		const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-copy]');
+		if (!button) return;
+		try {
+			await navigator.clipboard.writeText(button.dataset.copy ?? '');
+		} catch {
+			return;
+		}
+		button.classList.add('copied');
+		const status = button.querySelector('[data-copy-status]');
+		if (status) status.textContent = 'Copied';
+		setTimeout(() => {
+			button.classList.remove('copied');
+			if (status) status.textContent = '';
+		}, 1600);
+	});
+</script>
+
+<style>
+	.copy {
+		flex: none;
+		width: 2.25rem;
+		height: 2.25rem;
+		display: grid;
+		place-items: center;
+		border-radius: 8px;
+		color: var(--muted);
+		transition:
+			color 0.15s,
+			background 0.15s;
+	}
+
+	.copy:hover {
+		color: var(--text);
+		background: color-mix(in srgb, var(--text) 8%, transparent);
+	}
+
+	.copy svg {
+		grid-area: 1 / 1;
+		transition:
+			opacity 0.15s,
+			transform 0.15s;
+	}
+
+	.copy .done {
+		opacity: 0;
+		transform: scale(0.6);
+		color: var(--exact);
+	}
+
+	.copy:global(.copied) .idle {
+		opacity: 0;
+		transform: scale(0.6);
+	}
+
+	.copy:global(.copied) .done {
+		opacity: 1;
+		transform: none;
+	}
+</style>
