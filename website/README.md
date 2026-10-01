@@ -68,9 +68,8 @@ Nothing shown as output is typed by hand.
   official MCP TypeScript client, and reads the index cidx built. Each file
   records the cidx version, repository, commit, machine, and date.
 - `src/data/verification.ts` repeats numbers from `docs/verification.md`.
-- The version comes from `../pyproject.toml`. The published version and the
-  star count are read from the PyPI and GitHub APIs at build time and
-  refreshed in the browser.
+- The version comes from `../pyproject.toml`. The published version is read
+  from the PyPI API at build time and refreshed in the browser.
 
 To re-record, clone `pallets/click` at the commit pinned in
 `benchmark/datasets/manifest.json`, install cidx, then:

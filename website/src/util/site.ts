@@ -37,23 +37,16 @@ async function fetchJson(url: string): Promise<any | null> {
 }
 
 export interface LiveMeta {
-	stars: number | null;
 	pypiVersion: string | null;
 }
 
 let cached: Promise<LiveMeta> | undefined;
 
-/** Stars and the published version, read once per build from the public APIs. */
+/** The published version, read once per build from the PyPI API. */
 export function liveMeta(): Promise<LiveMeta> {
 	cached ??= (async () => {
-		const [repo, pypi] = await Promise.all([
-			fetchJson('https://api.github.com/repos/gativarshney/cidx'),
-			fetchJson('https://pypi.org/pypi/cidx/json'),
-		]);
-		return {
-			stars: typeof repo?.stargazers_count === 'number' ? repo.stargazers_count : null,
-			pypiVersion: typeof pypi?.info?.version === 'string' ? pypi.info.version : null,
-		};
+		const pypi = await fetchJson('https://pypi.org/pypi/cidx/json');
+		return { pypiVersion: typeof pypi?.info?.version === 'string' ? pypi.info.version : null };
 	})();
 	return cached;
 }
