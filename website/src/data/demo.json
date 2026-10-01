@@ -1,0 +1,539 @@
+{
+	"provenance": {
+		"cidx": "cidx 0.1.0a2",
+		"repository": "pallets/click",
+		"commit": "00e592cea702e0b2caa0dee42489fdb1c22cd845",
+		"captured": "2026-10-01",
+		"machine": {
+			"os": "Windows_NT 10.0.26300",
+			"cpu": "12th Gen Intel(R) Core(TM) i5-12500H",
+			"cores": 16,
+			"memoryGb": 16,
+			"node": "v22.19.0"
+		}
+	},
+	"cli": {
+		"help": {
+			"command": "cidx --help",
+			"output": "usage: cidx [-h] [--version] {index,query,stats,check,serve} ...\n\nZero-config local code index for AI coding agents.\n\npositional arguments:\n  {index,query,stats,check,serve}\n    index               build or refresh the index for a repository\n    query               look up definitions, references, outlines, or the repo\n                        map\n    stats               show index size and location\n    check               verify the index exactly matches a cold rebuild\n    serve               run the MCP server over stdio, keeping the index fresh\n\noptions:\n  -h, --help            show this help message and exit\n  --version             show program's version number and exit",
+			"exit": 0,
+			"ms": 263
+		},
+		"index": {
+			"command": "cidx index --repo .",
+			"output": "indexed 78 files (0 skipped as too large, 0 unreadable, 0 removed as stale) -> 2909 symbols, 6675 refs in 0.95s\nindex: C:\\Users\\gativ\\AppData\\Local\\cidx\\c3d04c84175c922f\\index.db",
+			"exit": 0,
+			"ms": 1165
+		},
+		"stats": {
+			"command": "cidx stats --repo .",
+			"output": "files: 78  symbols: 2909  refs: 6675\nindex: C:\\Users\\gativ\\AppData\\Local\\cidx\\c3d04c84175c922f\\index.db",
+			"exit": 0,
+			"ms": 263
+		},
+		"definition": {
+			"command": "cidx query Context --repo .",
+			"output": "Context  class  src/click/core.py:208  class Context",
+			"exit": 0,
+			"ms": 226
+		},
+		"qualified": {
+			"command": "cidx query Context.invoke --repo .",
+			"output": "Context.invoke  method  src/click/core.py:850  def invoke( self, callback: t.Callable[..., V], /, *args: t.Any, **kwargs: t.Any ) -> V\nContext.invoke  method  src/click/core.py:855  def invoke(self, callback: Command, /, *args: t.Any, **kwargs: t.Any) -> t.Any\nContext.invoke  method  src/click/core.py:857  def invoke( self, callback: Command | t.Callable[..., V], /, *args: t.Any, **kwargs: t.Any ) -> t.Any | V",
+			"exit": 0,
+			"ms": 236
+		},
+		"fuzzy": {
+			"command": "cidx query pass_cont --repo .",
+			"output": "pass_context  function  src/click/decorators.py:28  def pass_context(f: t.Callable[te.Concatenate[Context, P], R]) -> t.Callable[P, R]\npass_context  import  src/click/__init__.py:26  .decorators.pass_context\npass_context.new_func  function  src/click/decorators.py:33  def new_func(*args: P.args, **kwargs: P.kwargs) -> R",
+			"exit": 0,
+			"ms": 228
+		},
+		"references": {
+			"command": "cidx query echo --references --limit 8 --repo .",
+			"output": "src/click/_termui_impl.py:264  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/_termui_impl.py:299  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/core.py:1405  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/core.py:1557  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/core.py:1587  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/core.py:2767  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/decorators.py:544  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/decorators.py:589  echo  [import]  -> echo (src/click/utils.py)",
+			"exit": 0,
+			"ms": 225
+		},
+		"outline": {
+			"command": "cidx query src/click/globals.py --outline --repo .",
+			"output": "    3  t  import  typing\n    4  local  import  threading.local\n    7  Context  import  .core.Context\n    9  _local  const  _local\n   13  get_current_context  function  def get_current_context(silent: t.Literal[False] = False) -> Context\n   17  get_current_context  function  def get_current_context(silent: bool = ...) -> Context | None\n   20  get_current_context  function  def get_current_context(silent: bool = False) -> Context | None\n   44  push_context  function  def push_context(ctx: Context) -> None\n   49  pop_context  function  def pop_context() -> None\n   54  resolve_color_default  function  def resolve_color_default(color: bool | None = None) -> bool | None",
+			"exit": 0,
+			"ms": 237
+		},
+		"repoMap": {
+			"command": "cidx query --repo-map --limit 5 --repo .",
+			"output": "src/click/decorators.py  (python, 55 symbols, 453 inbound)  P, R, T, _AnyCallable, FC, pass_context, pass_obj, make_pass_decorator, pass_meta_key, CmdType\nsrc/click/core.py  (python, 308 symbols, 388 inbound)  F, V, _HELP_OPTION_STORAGE_NAME, _complete_visible_commands, _check_nested_chain, _format_deprecated_label, _format_deprecated_suffix, batch, augment_usage_errors, iter_params_for_processing\nsrc/click/exceptions.py  (python, 65 symbols, 206 inbound)  _join_param_hints, _format_possibilities, ClickException, UsageError, BadParameter, MissingParameter, NoSuchOption, NoSuchCommand, BadOptionUsage, BadArgumentUsage\nsrc/click/types.py  (python, 206 symbols, 197 inbound)  _ValueT, _ValueT_contra, _ValueT_co, _InputT_contra, _FloatValueT, _FloatValueT_co, ParamTypeInfoDict, ParamType, CompositeParamType, FuncParamTypeInfoDict\nsrc/click/testing.py  (python, 91 symbols, 113 inbound)  CaptureMode, ExceptionInfo, EchoingStdin, _pause_echo, _FDCapture, BytesIOCopy, StreamMixer, _NamedTextIOWrapper, make_input_stream, Result",
+			"exit": 0,
+			"ms": 233
+		},
+		"json": {
+			"command": "cidx query Context --json --repo .",
+			"output": "[{\"id\": 528, \"name\": \"Context\", \"qualified_name\": \"Context\", \"kind\": \"class\", \"path\": \"src/click/core.py\", \"start_line\": 208, \"end_line\": 956, \"signature\": \"class Context\"}]",
+			"exit": 0,
+			"ms": 221
+		},
+		"miss": {
+			"command": "cidx query no_such_symbol --repo .",
+			"output": "no matches for 'no_such_symbol'; try grep as a fallback",
+			"exit": 0,
+			"ms": 300
+		},
+		"check": {
+			"command": "cidx check --repo .",
+			"output": "no drift: the index matches a cold rebuild",
+			"exit": 0,
+			"ms": 907
+		}
+	},
+	"mcp": {
+		"tools": [
+			{
+				"name": "search_symbols",
+				"description": "Fuzzy-search symbols (functions, classes, methods, consts) by name across the whole repository. Returns ranked, terse `qualified_name kind path:line signature` rows. Start here when you only roughly know a name.",
+				"inputSchema": {
+					"type": "object",
+					"properties": {
+						"query": {
+							"title": "Query",
+							"type": "string"
+						},
+						"max_tokens": {
+							"default": 700,
+							"title": "Max Tokens",
+							"type": "integer"
+						}
+					},
+					"required": [
+						"query"
+					],
+					"title": "search_symbolsArguments"
+				}
+			},
+			{
+				"name": "find_definition",
+				"description": "Find where a symbol is defined. Give the exact name or qualified name (`Repo.save`). Returns definition locations with signatures — verify by reading the cited file:line.",
+				"inputSchema": {
+					"type": "object",
+					"properties": {
+						"name": {
+							"title": "Name",
+							"type": "string"
+						},
+						"max_tokens": {
+							"default": 700,
+							"title": "Max Tokens",
+							"type": "integer"
+						}
+					},
+					"required": [
+						"name"
+					],
+					"title": "find_definitionArguments"
+				}
+			},
+			{
+				"name": "find_references",
+				"description": "Find every usage of a symbol: calls, constructions, decorators, JSX usages. Each row is `path:line name [confidence]` with the resolved target when known; confidence `exact` and `import` beat `name-only`.",
+				"inputSchema": {
+					"type": "object",
+					"properties": {
+						"name": {
+							"title": "Name",
+							"type": "string"
+						},
+						"max_tokens": {
+							"default": 700,
+							"title": "Max Tokens",
+							"type": "integer"
+						}
+					},
+					"required": [
+						"name"
+					],
+					"title": "find_referencesArguments"
+				}
+			},
+			{
+				"name": "outline_file",
+				"description": "Outline one file: every symbol it defines, in source order, with nesting and signatures. Use a repo-relative path with forward slashes (`src/app.py`). Cheaper than reading the file.",
+				"inputSchema": {
+					"type": "object",
+					"properties": {
+						"path": {
+							"title": "Path",
+							"type": "string"
+						},
+						"max_tokens": {
+							"default": 700,
+							"title": "Max Tokens",
+							"type": "integer"
+						}
+					},
+					"required": [
+						"path"
+					],
+					"title": "outline_fileArguments"
+				}
+			},
+			{
+				"name": "repo_map",
+				"description": "A ranked map of the repository: most-referenced files first, each with its top-level symbols. Use this to orient in an unfamiliar codebase before searching.",
+				"inputSchema": {
+					"type": "object",
+					"properties": {
+						"max_tokens": {
+							"default": 700,
+							"title": "Max Tokens",
+							"type": "integer"
+						}
+					},
+					"title": "repo_mapArguments"
+				}
+			}
+		],
+		"repoMap": {
+			"tool": "repo_map",
+			"arguments": {
+				"max_tokens": 250
+			},
+			"text": "src/click/decorators.py  (python, 55 symbols, 453 inbound)  P, R, T, _AnyCallable, FC, pass_context, pass_obj, make_pass_decorator, pass_meta_key, CmdType\nsrc/click/core.py  (python, 308 symbols, 388 inbound)  F, V, _HELP_OPTION_STORAGE_NAME, _complete_visible_commands, _check_nested_chain, _format_deprecated_label, _format_deprecated_suffix, batch, augment_usage_errors, iter_params_for_processing\nsrc/click/exceptions.py  (python, 65 symbols, 206 inbound)  _join_param_hints, _format_possibilities, ClickException, UsageError, BadParameter, MissingParameter, NoSuchOption, NoSuchCommand, BadOptionUsage, BadArgumentUsage\nsrc/click/types.py  (python, 206 symbols, 197 inbound)  _ValueT, _ValueT_contra, _ValueT_co, _InputT_contra, _FloatValueT, _FloatValueT_co, ParamTypeInfoDict, ParamType, CompositeParamType, FuncParamTypeInfoDict\ntruncated: true, total_matches: 50\nindex_age_ms: 9599",
+			"isError": false,
+			"ms": 17,
+			"tokens": 222
+		},
+		"search": {
+			"tool": "search_symbols",
+			"arguments": {
+				"query": "pass_cont"
+			},
+			"text": "pass_context  function  src/click/decorators.py:28  def pass_context(f: t.Callable[te.Concatenate[Context, P], R]) -> t.Callable[P, R]\npass_context  import  src/click/__init__.py:26  .decorators.pass_context\npass_context.new_func  function  src/click/decorators.py:33  def new_func(*args: P.args, **kwargs: P.kwargs) -> R\nindex_age_ms: 9611",
+			"isError": false,
+			"ms": 10,
+			"tokens": 85
+		},
+		"definition": {
+			"tool": "find_definition",
+			"arguments": {
+				"name": "Context.invoke"
+			},
+			"text": "Context.invoke  method  src/click/core.py:850  def invoke( self, callback: t.Callable[..., V], /, *args: t.Any, **kwargs: t.Any ) -> V\nContext.invoke  method  src/click/core.py:855  def invoke(self, callback: Command, /, *args: t.Any, **kwargs: t.Any) -> t.Any\nContext.invoke  method  src/click/core.py:857  def invoke( self, callback: Command | t.Callable[..., V], /, *args: t.Any, **kwargs: t.Any ) -> t.Any | V\nindex_age_ms: 9616",
+			"isError": false,
+			"ms": 6,
+			"tokens": 108
+		},
+		"references": {
+			"tool": "find_references",
+			"arguments": {
+				"name": "echo"
+			},
+			"text": "src/click/_termui_impl.py:264  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/_termui_impl.py:299  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/core.py:1405  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/core.py:1557  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/core.py:1587  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/core.py:2767  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/decorators.py:544  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/decorators.py:589  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/decorators.py:615  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/exceptions.py:61  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/exceptions.py:106  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/exceptions.py:107  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/exceptions.py:339  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/shell_completion.py:48  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/shell_completion.py:52  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/shell_completion.py:415  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/shell_completion.py:423  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/termui.py:243  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/termui.py:274  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/termui.py:285  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/termui.py:339  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/termui.py:612  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/termui.py:810  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/termui.py:996  echo  [import]  -> echo (src/click/utils.py)\nsrc/click/termui.py:1003  echo  [import]  -> echo (src/click/utils.py)\ntests/test_utils/test_prompt.py:53  echo  [exact]  -> test_prompts_eof.echo (tests/test_utils/test_prompt.py)\ntests/test_utils/test_prompt.py:96  echo  [exact]  -> test_prompts_eof.echo (tests/test_utils/test_prompt.py)\nexamples/aliases/aliases.py:104  echo  [name-only]\nexamples/aliases/aliases.py:110  echo  [name-only]\nexamples/aliases/aliases.py:116  echo  [name-only]\nexamples/aliases/aliases.py:122  echo  [name-only]\nexamples/aliases/aliases.py:129  echo  [name-only]\nexamples/aliases/aliases.py:143  echo  [name-only]\nexamples/colors/colors.py:32  echo  [name-only]\nexamples/colors/colors.py:34  echo  [name-only]\nexamples/colors/colors.py:36  echo  [name-only]\nexamples/colors/colors.py:38  echo  [name-only]\nexamples/colors/colors.py:39  echo  [name-only]\nexamples/completion/completion.py:15  echo  [name-only]\nexamples/completion/completion.py:27  echo  [name-only]\nexamples/completion/completion.py:28  echo  [name-only]\nexamples/completion/completion.py:53  echo  [name-only]\nexamples/complex/complex/cli.py:19  echo  [name-only]\ntruncated: true, total_matches: 200\nindex_age_ms: 9624",
+			"isError": false,
+			"ms": 8,
+			"tokens": 730
+		},
+		"outline": {
+			"tool": "outline_file",
+			"arguments": {
+				"path": "src/click/core.py"
+			},
+			"text": "3  cabc  import  collections.abc\n4  enum  import  enum\n5  errno  import  errno\n6  inspect  import  inspect\n7  os  import  os\n8  sys  import  sys\n9  t  import  typing\n10  ABC  import  abc.ABC\n11  abstractmethod  import  abc.abstractmethod\n12  abc  import  collections.abc\n13  Counter  import  collections.Counter\n14  AbstractContextManager  import  contextlib.AbstractContextManager\n15  contextmanager  import  contextlib.contextmanager\n16  ExitStack  import  contextlib.ExitStack\n17  update_wrapper  import  functools.update_wrapper\n18  _  import  gettext.gettext\n19  ngettext  import  gettext.ngettext\n20  repeat  import  itertools.repeat\n21  TracebackType  import  types.TracebackType\n23  types  import  .types\n24  FLAG_NEEDS_VALUE  import  ._utils.FLAG_NEEDS_VALUE\n25  UNSET  import  ._utils.UNSET\n26  Abort  import  .exceptions.Abort\n27  BadParameter  import  .exceptions.BadParameter\n28  ClickException  import  .exceptions.ClickException\n29  Exit  import  .exceptions.Exit\n30  MissingParameter  import  .exceptions.MissingParameter\n31  NoArgsIsHelpError  import  .exceptions.NoArgsIsHelpError\n32  NoSuchCommand  import  .exceptions.NoSuchCommand\n33  UsageError  import  .exceptions.UsageError\n34  HelpFormatter  import  .formatting.HelpFormatter\n35  join_options  import  .formatting.join_options\n36  pop_context  import  .globals.pop_context\n37  push_context  import  .globals.push_context\n38  _OptionParser  import  .parser._OptionParser\n39  _split_opt  import  .parser._split_opt\n40  confirm  import  .termui.confirm\n41  prompt  import  .termui.prompt\n42  style  import  .termui.style\n43  _detect_program_name  import  .utils._detect_program_name\n44  _expand_args  import  .utils._expand_args\n45  _make_default_short_help  import  .utils._make_default_short_help\n46  _PacifyFlushWrapper  import  .utils._PacifyFlushWrapper\n47  echo  import  .utils.echo\n48  make_str  import  .utils.make_str\n51  Self  import  typing_extensions.Self\n53  CompletionItem  import  .shell_completion.CompletionItem\n55  F  const\n56  V  const\n60  _HELP_OPTION_STORAGE_NAME  const\n63  _complete_visible_commands  function  def _complete_visible_commands( ctx: Context, incomplete: str ) -> cabc.Iterator[tuple[str, Command]]\n82  _check_nested_chain  function  def _check_nested_chain( base_command: Group, cmd_name: str, cmd: Command, register: bool = False ) -> None\n102  _format_deprecated_label  function  def _format_deprecated_label(deprecated: bool | str) -> str\n110  _format_deprecated_suffix  function  def _format_deprecated_suffix(deprecated: bool | str) -> str\n119  batch  function  def batch(iterable: cabc.Iterable[V], batch_size: int) -> list[tuple[V, ...]]\n124  augment_usage_errors  function  def augment_usage_errors( ctx: Context, param: Parameter | None = None ) -> cabc.Generator[None]\ntruncated: true, total_matches: 308\nindex_age_ms: 9631",
+			"isError": false,
+			"ms": 7,
+			"tokens": 711
+		},
+		"outlineSmall": {
+			"tool": "outline_file",
+			"arguments": {
+				"path": "src/click/globals.py"
+			},
+			"text": "3  t  import  typing\n4  local  import  threading.local\n7  Context  import  .core.Context\n9  _local  const\n13  get_current_context  function  def get_current_context(silent: t.Literal[False] = False) -> Context\n17  get_current_context  function  def get_current_context(silent: bool = ...) -> Context | None\n20  get_current_context  function  def get_current_context(silent: bool = False) -> Context | None\n44  push_context  function  def push_context(ctx: Context) -> None\n49  pop_context  function  def pop_context() -> None\n54  resolve_color_default  function  def resolve_color_default(color: bool | None = None) -> bool | None\nindex_age_ms: 9637",
+			"isError": false,
+			"ms": 6,
+			"tokens": 162
+		},
+		"miss": {
+			"tool": "find_definition",
+			"arguments": {
+				"name": "no_such_symbol"
+			},
+			"text": "index_age_ms: 9642\ncidx: no definition of 'no_such_symbol' in the index. Fall back to grep/ripgrep for this question; results may simply not be indexed yet.",
+			"isError": false,
+			"ms": 5,
+			"tokens": 39
+		}
+	},
+	"live": {
+		"edit": "echo \"def live_demo_symbol(): pass\" >> src/click/utils.py",
+		"samplesMs": [
+			228,
+			234,
+			238,
+			249,
+			264
+		],
+		"before": {
+			"tool": "find_definition",
+			"arguments": {
+				"name": "live_demo_symbol"
+			},
+			"text": "index_age_ms: 1538\ncidx: no definition of 'live_demo_symbol' in the index. Fall back to grep/ripgrep for this question; results may simply not be indexed yet.",
+			"isError": false,
+			"ms": 12,
+			"tokens": 39
+		},
+		"after": {
+			"tool": "find_definition",
+			"arguments": {
+				"name": "live_demo_symbol"
+			},
+			"text": "live_demo_symbol  function  src/click/utils.py:691  def live_demo_symbol()\nindex_age_ms: 24",
+			"isError": false,
+			"ms": 13,
+			"tokens": 22
+		},
+		"medianMs": 238,
+		"check": {
+			"command": "cidx check --repo .",
+			"output": "no drift: the index matches a cold rebuild",
+			"exit": 0,
+			"ms": 837
+		}
+	},
+	"baseline": {
+		"grep": {
+			"command": "git grep -n echo",
+			"lines": 724,
+			"chars": 50756,
+			"tokens": 12689,
+			"sample": [
+				".github/workflows/publish.yaml:24:      - run: echo \"SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)\" >> $GITHUB_ENV",
+				".readthedocs.yaml:11:      - echo \"Installing dependencies\"",
+				"CHANGES.md:14:  prompt when the output stream does not support them, matching `echo()`.",
+				"CHANGES.md:25:- `style()` and `secho()` no longer silently drop the 256-color index `0`",
+				"CHANGES.md:80:- `echo_via_pager` flushes after each write, so passing a generator streams",
+				"CHANGES.md:83:- `echo_via_pager` and `get_pager_file` no longer close a borrowed stdout",
+				"CHANGES.md:105:- Fix empty byte-string handling in echo. {issue}`3487` {pr}`3493`",
+				"CHANGES.md:106:- Fix closed file error with `echo_via_pager`. {issue}`3449` {pr}`3482`",
+				"CHANGES.md:448:- Improve `echo_via_pager` behaviour in face of errors."
+			]
+		},
+		"readFile": {
+			"command": "cat src/click/core.py",
+			"lines": 3793,
+			"chars": 147588,
+			"tokens": 36897
+		}
+	},
+	"budget": {
+		"tool": "find_references",
+		"name": "echo",
+		"total": 200,
+		"lines": [
+			"src/click/_termui_impl.py:264  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/_termui_impl.py:299  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/core.py:1405  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/core.py:1557  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/core.py:1587  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/core.py:2767  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/decorators.py:544  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/decorators.py:589  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/decorators.py:615  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/exceptions.py:61  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/exceptions.py:106  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/exceptions.py:107  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/exceptions.py:339  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/shell_completion.py:48  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/shell_completion.py:52  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/shell_completion.py:415  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/shell_completion.py:423  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/termui.py:243  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/termui.py:274  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/termui.py:285  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/termui.py:339  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/termui.py:612  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/termui.py:810  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/termui.py:996  echo  [import]  -> echo (src/click/utils.py)",
+			"src/click/termui.py:1003  echo  [import]  -> echo (src/click/utils.py)",
+			"tests/test_utils/test_prompt.py:53  echo  [exact]  -> test_prompts_eof.echo (tests/test_utils/test_prompt.py)",
+			"tests/test_utils/test_prompt.py:96  echo  [exact]  -> test_prompts_eof.echo (tests/test_utils/test_prompt.py)",
+			"examples/aliases/aliases.py:104  echo  [name-only]",
+			"examples/aliases/aliases.py:110  echo  [name-only]",
+			"examples/aliases/aliases.py:116  echo  [name-only]",
+			"examples/aliases/aliases.py:122  echo  [name-only]",
+			"examples/aliases/aliases.py:129  echo  [name-only]",
+			"examples/aliases/aliases.py:143  echo  [name-only]",
+			"examples/colors/colors.py:32  echo  [name-only]",
+			"examples/colors/colors.py:34  echo  [name-only]",
+			"examples/colors/colors.py:36  echo  [name-only]",
+			"examples/colors/colors.py:38  echo  [name-only]",
+			"examples/colors/colors.py:39  echo  [name-only]",
+			"examples/completion/completion.py:15  echo  [name-only]",
+			"examples/completion/completion.py:27  echo  [name-only]",
+			"examples/completion/completion.py:28  echo  [name-only]",
+			"examples/completion/completion.py:53  echo  [name-only]",
+			"examples/complex/complex/cli.py:19  echo  [name-only]",
+			"examples/imagepipe/imagepipe.py:90  echo  [name-only]",
+			"examples/imagepipe/imagepipe.py:98  echo  [name-only]",
+			"examples/imagepipe/imagepipe.py:115  echo  [name-only]",
+			"examples/imagepipe/imagepipe.py:118  echo  [name-only]",
+			"examples/imagepipe/imagepipe.py:126  echo  [name-only]",
+			"examples/imagepipe/imagepipe.py:141  echo  [name-only]",
+			"examples/imagepipe/imagepipe.py:159  echo  [name-only]",
+			"examples/imagepipe/imagepipe.py:200  echo  [name-only]",
+			"examples/imagepipe/imagepipe.py:204  echo  [name-only]",
+			"examples/imagepipe/imagepipe.py:216  echo  [name-only]",
+			"examples/imagepipe/imagepipe.py:232  echo  [name-only]",
+			"examples/imagepipe/imagepipe.py:246  echo  [name-only]",
+			"examples/imagepipe/imagepipe.py:258  echo  [name-only]",
+			"examples/imagepipe/imagepipe.py:280  echo  [name-only]",
+			"examples/naval/naval.py:24  echo  [name-only]",
+			"examples/naval/naval.py:34  echo  [name-only]",
+			"examples/naval/naval.py:43  echo  [name-only]",
+			"examples/naval/naval.py:64  echo  [name-only]",
+			"examples/naval/naval.py:72  echo  [name-only]",
+			"examples/repo/repo.py:17  echo  [name-only]",
+			"examples/repo/repo.py:81  echo  [name-only]",
+			"examples/repo/repo.py:84  echo  [name-only]",
+			"examples/repo/repo.py:85  echo  [name-only]",
+			"examples/repo/repo.py:96  echo  [name-only]",
+			"examples/repo/repo.py:97  echo  [name-only]",
+			"examples/repo/repo.py:113  echo  [name-only]",
+			"examples/repo/repo.py:142  echo  [name-only]",
+			"examples/repo/repo.py:146  echo  [name-only]",
+			"examples/repo/repo.py:150  echo  [name-only]",
+			"examples/repo/repo.py:151  echo  [name-only]",
+			"examples/repo/repo.py:166  echo  [name-only]",
+			"examples/termui/termui.py:18  echo  [name-only]",
+			"examples/termui/termui.py:19  echo  [name-only]",
+			"examples/termui/termui.py:125  echo  [name-only]",
+			"examples/termui/termui.py:127  echo  [name-only]",
+			"examples/termui/termui.py:129  echo  [name-only]",
+			"examples/termui/termui.py:150  echo  [name-only]",
+			"examples/termui/termui.py:151  echo  [name-only]",
+			"examples/termui/termui.py:152  echo  [name-only]",
+			"examples/termui/termui.py:159  echo  [name-only]",
+			"examples/termui/termui.py:161  echo  [name-only]",
+			"examples/termui/termui.py:162  echo  [name-only]",
+			"examples/termui/termui.py:167  echo  [name-only]",
+			"examples/validation/validation.py:46  echo  [name-only]",
+			"examples/validation/validation.py:47  echo  [name-only]",
+			"examples/validation/validation.py:48  echo  [name-only]",
+			"tests/test_arguments.py:15  echo  [name-only]",
+			"tests/test_arguments.py:16  echo  [name-only]",
+			"tests/test_arguments.py:28  echo  [name-only]",
+			"tests/test_arguments.py:30  echo  [name-only]",
+			"tests/test_arguments.py:51  echo  [name-only]",
+			"tests/test_arguments.py:71  echo  [name-only]",
+			"tests/test_arguments.py:131  echo  [name-only]",
+			"tests/test_arguments.py:218  echo  [name-only]",
+			"tests/test_arguments.py:227  echo  [name-only]",
+			"tests/test_arguments.py:238  echo  [name-only]",
+			"tests/test_arguments.py:288  echo  [name-only]",
+			"tests/test_arguments.py:343  echo  [name-only]",
+			"tests/test_arguments.py:384  echo  [name-only]",
+			"tests/test_arguments.py:397  echo  [name-only]",
+			"tests/test_arguments.py:427  echo  [name-only]",
+			"tests/test_arguments.py:453  echo  [name-only]",
+			"tests/test_arguments.py:454  echo  [name-only]",
+			"tests/test_arguments.py:470  echo  [name-only]",
+			"tests/test_arguments.py:483  echo  [name-only]",
+			"tests/test_arguments.py:527  echo  [name-only]",
+			"tests/test_arguments.py:605  echo  [name-only]",
+			"tests/test_arguments.py:617  echo  [name-only]",
+			"tests/test_arguments.py:637  echo  [name-only]",
+			"tests/test_arguments.py:659  echo  [name-only]",
+			"tests/test_arguments.py:736  echo  [name-only]",
+			"tests/test_basic.py:16  echo  [name-only]",
+			"tests/test_basic.py:56  echo  [name-only]",
+			"tests/test_basic.py:81  echo  [name-only]",
+			"tests/test_basic.py:100  echo  [name-only]",
+			"tests/test_basic.py:145  echo  [name-only]",
+			"tests/test_basic.py:150  echo  [name-only]",
+			"tests/test_basic.py:172  echo  [name-only]",
+			"tests/test_basic.py:184  echo  [name-only]",
+			"tests/test_basic.py:205  echo  [name-only]",
+			"tests/test_basic.py:228  echo  [name-only]",
+			"tests/test_basic.py:256  echo  [name-only]",
+			"tests/test_basic.py:279  echo  [name-only]",
+			"tests/test_basic.py:351  echo  [name-only]",
+			"tests/test_basic.py:412  echo  [name-only]",
+			"tests/test_basic.py:427  echo  [name-only]",
+			"tests/test_basic.py:501  echo  [name-only]",
+			"tests/test_basic.py:502  echo  [name-only]",
+			"tests/test_basic.py:514  echo  [name-only]",
+			"tests/test_basic.py:527  echo  [name-only]",
+			"tests/test_basic.py:548  echo  [name-only]",
+			"tests/test_basic.py:575  echo  [name-only]",
+			"tests/test_basic.py:606  echo  [name-only]",
+			"tests/test_basic.py:630  echo  [name-only]",
+			"tests/test_basic.py:695  echo  [name-only]",
+			"tests/test_basic.py:722  echo  [name-only]",
+			"tests/test_basic.py:733  echo  [name-only]",
+			"tests/test_basic.py:787  echo  [name-only]",
+			"tests/test_chain.py:9  echo  [name-only]",
+			"tests/test_chain.py:22  echo  [name-only]",
+			"tests/test_chain.py:26  echo  [name-only]",
+			"tests/test_chain.py:56  echo  [name-only]",
+			"tests/test_chain.py:61  echo  [name-only]",
+			"tests/test_chain.py:76  echo  [name-only]",
+			"tests/test_chain.py:81  echo  [name-only]",
+			"tests/test_chain.py:101  echo  [name-only]",
+			"tests/test_chain.py:115  echo  [name-only]",
+			"tests/test_chain.py:120  echo  [name-only]",
+			"tests/test_chain.py:147  echo  [name-only]",
+			"tests/test_chain.py:210  echo  [name-only]",
+			"tests/test_chain.py:214  echo  [name-only]",
+			"tests/test_command_decorators.py:9  echo  [name-only]",
+			"tests/test_command_decorators.py:29  echo  [name-only]",
+			"tests/test_command_decorators.py:39  echo  [name-only]",
+			"tests/test_command_decorators.py:43  echo  [name-only]",
+			"tests/test_command_decorators.py:47  echo  [name-only]",
+			"tests/test_command_decorators.py:51  echo  [name-only]",
+			"tests/test_command_decorators.py:68  echo  [name-only]",
+			"tests/test_commands.py:17  echo  [name-only]",
+			"tests/test_commands.py:30  echo  [name-only]",
+			"tests/test_commands.py:51  echo  [name-only]",
+			"tests/test_commands.py:58  echo  [name-only]",
+			"tests/test_commands.py:112  echo  [name-only]",
+			"tests/test_commands.py:133  echo  [name-only]",
+			"tests/test_commands.py:137  echo  [name-only]",
+			"tests/test_commands.py:188  echo  [name-only]",
+			"tests/test_commands.py:189  echo  [name-only]",
+			"tests/test_commands.py:190  echo  [name-only]",
+			"tests/test_commands.py:224  echo  [name-only]",
+			"tests/test_commands.py:284  echo  [name-only]",
+			"tests/test_commands.py:287  echo  [name-only]",
+			"tests/test_commands.py:291  echo  [name-only]",
+			"tests/test_commands.py:342  echo  [name-only]",
+			"tests/test_commands.py:431  echo  [name-only]",
+			"tests/test_commands.py:496  echo  [name-only]",
+			"tests/test_commands.py:497  echo  [name-only]",
+			"tests/test_context.py:32  echo  [name-only]",
+			"tests/test_context.py:55  echo  [name-only]",
+			"tests/test_context.py:78  echo  [name-only]",
+			"tests/test_context.py:99  echo  [name-only]",
+			"tests/test_context.py:190  echo  [name-only]",
+			"tests/test_context.py:191  echo  [name-only]",
+			"tests/test_context.py:192  echo  [name-only]",
+			"tests/test_context.py:194  echo  [name-only]",
+			"tests/test_context.py:195  echo  [name-only]",
+			"tests/test_context.py:207  echo  [name-only]",
+			"tests/test_context.py:208  echo  [name-only]",
+			"tests/test_context.py:209  echo  [name-only]",
+			"tests/test_context.py:214  echo  [name-only]",
+			"tests/test_context.py:215  echo  [name-only]",
+			"tests/test_context.py:216  echo  [name-only]",
+			"tests/test_context.py:223  echo  [name-only]",
+			"tests/test_context.py:224  echo  [name-only]",
+			"tests/test_context.py:225  echo  [name-only]",
+			"tests/test_context.py:227  echo  [name-only]",
+			"tests/test_context.py:228  echo  [name-only]",
+			"tests/test_context.py:247  echo  [name-only]"
+		],
+		"verifiedAt": [
+			150,
+			700
+		]
+	}
+}
