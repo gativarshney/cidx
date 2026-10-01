@@ -1,0 +1,282 @@
+---
+import demo from '../data/demo.json';
+import { formatNumber, tint } from '../util/tint';
+
+const { baseline, mcp, provenance } = demo;
+const withoutTotal = baseline.grep.tokens + baseline.readFile.tokens;
+const withTotal = mcp.references.tokens + mcp.outline.tokens;
+const ratio = Math.round(withoutTotal / withTotal);
+const head = (text: string, rows: number) => text.split('\n').slice(0, rows).join('\n');
+const tail = (text: string, rows: number) => text.split('\n').slice(-rows).join('\n');
+const referenceRows = mcp.references.text.split('\n').length - 2;
+const outlineRows = mcp.outline.text.split('\n').length - 2;
+---
+
+<div class="compare" data-reveal>
+	<p class="question">
+		<span>The task</span>
+		“Who calls <code>echo</code>, and what does <code>core.py</code> define?”
+	</p>
+
+	<div class="columns">
+		<article class="column without">
+			<header>
+				<h3>Searching blind</h3>
+				<p>grep, then read the file</p>
+			</header>
+
+			<div class="call">
+				<p class="tool"><span>shell</span>{baseline.grep.command}</p>
+				<pre class="result faded">{baseline.grep.sample.slice(0, 6).join('\n')}</pre>
+				<p class="more">
+					… {formatNumber(baseline.grep.lines - 6)} more lines: changelog entries, docs, CI config,
+					strings, and <code>secho</code>, mixed in with the calls
+				</p>
+				<p class="cost">{formatNumber(baseline.grep.lines)} lines · ~{formatNumber(baseline.grep.tokens)} tokens</p>
+			</div>
+
+			<div class="call">
+				<p class="tool"><span>shell</span>{baseline.readFile.command}</p>
+				<p class="more">the whole file, to find out what it defines</p>
+				<p class="cost">{formatNumber(baseline.readFile.lines)} lines · ~{formatNumber(baseline.readFile.tokens)} tokens</p>
+			</div>
+
+			<footer>
+				<span>Tool output in context</span>
+				<strong>~<span data-count={withoutTotal}>{formatNumber(withoutTotal)}</span> tokens</strong>
+				<div class="meter"><i style="width: 100%"></i></div>
+			</footer>
+		</article>
+
+		<article class="column with">
+			<header>
+				<h3>Asking cidx</h3>
+				<p>two MCP tool calls</p>
+			</header>
+
+			<div class="call">
+				<p class="tool"><span>mcp</span>find_references("echo")</p>
+				<pre class="result" set:html={tint(head(mcp.references.text, 5))} />
+				<p class="more">… {referenceRows - 5} more rows, resolved to their definition where possible</p>
+				<pre class="result" set:html={tint(tail(mcp.references.text, 2))} />
+				<p class="cost">{referenceRows} rows · ~{formatNumber(mcp.references.tokens)} tokens · {mcp.references.ms} ms</p>
+			</div>
+
+			<div class="call">
+				<p class="tool"><span>mcp</span>outline_file("src/click/core.py")</p>
+				<pre class="result" set:html={tint(tail(mcp.outline.text, 2))} />
+				<p class="more">{outlineRows} symbols with signatures, then a marker that says how many were cut</p>
+				<p class="cost">{outlineRows} rows · ~{formatNumber(mcp.outline.tokens)} tokens · {mcp.outline.ms} ms</p>
+			</div>
+
+			<footer>
+				<span>Tool output in context</span>
+				<strong>~<span data-count={withTotal}>{formatNumber(withTotal)}</span> tokens</strong>
+				<div class="meter"><i style={`width: ${Math.max((withTotal / withoutTotal) * 100, 1.5).toFixed(1)}%`}></i></div>
+			</footer>
+		</article>
+	</div>
+
+	<p class="footnote">
+		About {ratio}x less tool output for these two questions. Both columns are real output on
+		{provenance.repository}@{provenance.commit.slice(0, 7)}, with tokens estimated as characters / 4
+		(the estimate cidx itself uses). This compares the size of tool output, not a full agent run: a
+		careful agent would narrow its grep, and cidx truncates long answers to its budget and says so.
+		When cidx has no answer, it tells the agent to fall back to grep.
+	</p>
+</div>
+
+<style>
+	.question {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.4rem 1rem;
+		padding: 1rem 1.25rem;
+		border: 1px solid var(--line-strong);
+		border-radius: 14px;
+		background: var(--bg-raised);
+		font-size: 1.05rem;
+	}
+
+	.question span {
+		font-family: var(--font-mono);
+		font-size: 0.7rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+
+	.question code,
+	.more code {
+		font-size: 0.9em;
+		color: var(--accent);
+	}
+
+	.columns {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.25rem;
+		margin-top: 1.25rem;
+	}
+
+	.column {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		border: 1px solid var(--line);
+		border-radius: 16px;
+		background: var(--bg-sunken);
+		overflow: hidden;
+	}
+
+	.with {
+		border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+		box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent), var(--shadow);
+	}
+
+	.column header {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 1rem 1.25rem;
+		border-bottom: 1px solid var(--line);
+		background: var(--bg-raised);
+	}
+
+	h3 {
+		font-size: 1rem;
+		font-weight: 600;
+	}
+
+	.column header p {
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		color: var(--muted);
+	}
+
+	.call {
+		padding: 1rem 1.25rem;
+		border-bottom: 1px dashed var(--line);
+		font-family: var(--font-mono);
+		font-size: 0.74rem;
+		line-height: 1.6;
+	}
+
+	.tool {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		color: var(--text);
+		font-size: 0.8rem;
+		word-break: break-word;
+	}
+
+	.tool span {
+		flex: none;
+		padding: 0.05rem 0.5rem;
+		border: 1px solid var(--line-strong);
+		border-radius: 999px;
+		font-size: 0.64rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+
+	.with .tool span {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+
+	.result {
+		margin-top: 0.6rem;
+		overflow-x: auto;
+		color: var(--text-soft);
+		scrollbar-width: none;
+	}
+
+	.result.faded {
+		color: var(--muted);
+		mask-image: linear-gradient(to bottom, #000 40%, transparent);
+	}
+
+	.more {
+		margin-top: 0.5rem;
+		font-family: var(--font-sans);
+		font-size: 0.84rem;
+		color: var(--muted);
+	}
+
+	.cost {
+		margin-top: 0.6rem;
+		color: var(--text-soft);
+	}
+
+	.column footer {
+		margin-top: auto;
+		display: grid;
+		grid-template-columns: 1fr auto;
+		align-items: baseline;
+		gap: 0.6rem 1rem;
+		padding: 1rem 1.25rem 1.25rem;
+		font-size: 0.85rem;
+		color: var(--muted);
+	}
+
+	.column footer strong {
+		font-family: var(--font-mono);
+		font-size: 1.25rem;
+		font-weight: 600;
+		color: var(--text);
+	}
+
+	.meter {
+		grid-column: 1 / -1;
+		height: 0.5rem;
+		border-radius: 999px;
+		background: var(--line);
+		overflow: hidden;
+	}
+
+	.meter i {
+		display: block;
+		height: 100%;
+		border-radius: inherit;
+		background: var(--name-only);
+		transform-origin: left;
+	}
+
+	.with .meter i {
+		background: var(--exact);
+	}
+
+	:global(.js) .compare .meter i {
+		transform: scaleX(0);
+		transition: transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s;
+	}
+
+	:global(.js) .compare:global(.in) .meter i {
+		transform: none;
+	}
+
+	.footnote {
+		margin-top: 1.25rem;
+		font-size: 0.85rem;
+		color: var(--muted);
+		max-width: 60rem;
+	}
+
+	@media (max-width: 860px) {
+		.columns {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		:global(.js) .compare .meter i {
+			transform: none;
+			transition: none;
+		}
+	}
+</style>

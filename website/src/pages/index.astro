@@ -1,0 +1,290 @@
+---
+import Site from '../layouts/Site.astro';
+import Hero from '../components/Hero.astro';
+import Connect from '../components/Connect.astro';
+import Terminal from '../components/Terminal.astro';
+import AgentCompare from '../components/AgentCompare.astro';
+import Pipeline from '../components/Pipeline.astro';
+import Tools from '../components/Tools.astro';
+import Budget from '../components/Budget.astro';
+import Numbers from '../components/Numbers.astro';
+import Limits from '../components/Limits.astro';
+import CopyButton from '../components/CopyButton.astro';
+import { href, REPO_URL } from '../util/site';
+---
+
+<Site
+	title="cidx: a local code index for AI coding agents"
+	description="cidx parses a repository into a symbol and reference index with tree-sitter, keeps it fresh on every save, and answers coding agents over MCP with ranked, token-budgeted results. Zero config."
+>
+	<Hero />
+
+	<section class="section first" id="connect">
+		<div class="wrap">
+			<p class="eyebrow">Setup</p>
+			<h2 class="title">Add it to your agent in <em>one block of JSON.</em></h2>
+			<p class="lede">
+				Any MCP client that can start a stdio server takes the same two facts: a command and its
+				arguments. No API key, no account, nothing else to configure.
+			</p>
+			<div class="block">
+				<Connect />
+			</div>
+		</div>
+	</section>
+
+	<section class="section" id="demo">
+		<div class="wrap">
+			<p class="eyebrow">See it work</p>
+			<h2 class="title">Index, ask, edit, <em>ask again.</em></h2>
+			<p class="lede">
+				Five scenes on a real repository. Nothing here is typed by hand: a script runs cidx and the
+				site replays what it printed.
+			</p>
+			<div class="block" data-reveal>
+				<Terminal />
+			</div>
+		</div>
+	</section>
+
+	<section class="section tight" id="agent">
+		<div class="wrap">
+			<p class="eyebrow">Through MCP</p>
+			<h2 class="title">What your agent reads, <em>before and after.</em></h2>
+			<p class="lede">
+				Agents find code by grepping and reading files. That works, and it fills the context window
+				with text that never mattered. cidx returns locations and signatures instead.
+			</p>
+			<div class="block">
+				<AgentCompare />
+			</div>
+		</div>
+	</section>
+
+	<section class="section" id="tools">
+		<div class="wrap">
+			<p class="eyebrow">The MCP surface</p>
+			<h2 class="title">Five tools. <em>All read-only.</em></h2>
+			<p class="lede">
+				cidx never writes to, executes, or modifies your repository. Whatever a file in the repo
+				says, cidx cannot be made to write or run anything.
+			</p>
+			<div class="block">
+				<Tools />
+				<Budget />
+			</div>
+		</div>
+	</section>
+
+	<section class="section" id="how">
+		<div class="wrap">
+			<p class="eyebrow">How it works</p>
+			<h2 class="title">From source bytes to a <em>700-token answer.</em></h2>
+			<p class="lede">Five stages. Select one to see what it does and why it is built that way.</p>
+			<div class="block">
+				<Pipeline />
+			</div>
+			<div class="invariant" data-reveal data-glow>
+				<div>
+					<p class="eyebrow">The invariant</p>
+					<h3>The incremental index always equals a cold rebuild.</h3>
+					<p>
+						A property-based suite generates random storms of edits, deletes and renames, then
+						asserts the live index matches a fresh build row for row. It runs in CI on every push,
+						on three operating systems. You can run the same proof on your own repository at any time.
+					</p>
+				</div>
+				<div class="proof">
+					<div class="command">
+						<span class="prompt" aria-hidden="true">$</span>
+						<code>cidx check --repo .</code>
+						<CopyButton text="cidx check --repo ." />
+					</div>
+					<pre><span class="t-ok">no drift: the index matches a cold rebuild</span></pre>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="section" id="numbers">
+		<div class="wrap">
+			<p class="eyebrow">Measured, not claimed</p>
+			<h2 class="title">The numbers, <em>including the misses.</em></h2>
+			<p class="lede">
+				Every figure comes from a run you can repeat, with the machine and repository stated. Where
+				a target is missed, the measured number is published anyway.
+			</p>
+			<div class="block">
+				<Numbers />
+			</div>
+		</div>
+	</section>
+
+	<section class="section tight" id="limits">
+		<div class="wrap">
+			<p class="eyebrow">Known limitations</p>
+			<h2 class="title">What it <em>does not</em> do.</h2>
+			<p class="lede">Stated up front, so you can decide in a minute whether cidx fits.</p>
+			<div class="block">
+				<Limits />
+			</div>
+		</div>
+	</section>
+
+	<section class="section closing">
+		<div class="wrap" data-reveal>
+			<h2 class="title">Give your agent <em>an index.</em></h2>
+			<div class="closing-command">
+				<span class="prompt" aria-hidden="true">$</span>
+				<code>pip install cidx</code>
+				<CopyButton text="pip install cidx" />
+			</div>
+			<div class="cta">
+				<a class="button primary" href="#connect">Add it to your agent</a>
+				<a class="button" href={href('/docs/quickstart/')}>Read the docs</a>
+				<a class="button" href={`${REPO_URL}/blob/main/CONTRIBUTING.md`}>Contribute</a>
+			</div>
+		</div>
+	</section>
+</Site>
+
+<style>
+	.block {
+		margin-top: 2.75rem;
+	}
+
+	.tight {
+		padding-top: 0;
+	}
+
+	.first {
+		padding-top: clamp(3rem, 6vw, 5rem);
+	}
+
+	.invariant {
+		display: grid;
+		grid-template-columns: 1.3fr 1fr;
+		gap: 2rem;
+		align-items: center;
+		margin-top: 1rem;
+		padding: 1.75rem 1.5rem;
+		border: 1px solid color-mix(in srgb, var(--exact) 40%, var(--line));
+		border-radius: 18px;
+		background: color-mix(in srgb, var(--exact) 5%, var(--bg-raised));
+	}
+
+	.invariant h3 {
+		margin-top: 0.8rem;
+		font-family: var(--font-display);
+		font-weight: 400;
+		font-size: clamp(1.5rem, 3vw, 2rem);
+		line-height: 1.1;
+	}
+
+	.invariant p:not(.eyebrow) {
+		margin-top: 0.75rem;
+		color: var(--text-soft);
+		font-size: 0.96rem;
+	}
+
+	.proof {
+		position: relative;
+		z-index: 1;
+		border: 1px solid var(--line-strong);
+		border-radius: 12px;
+		background: var(--bg-sunken);
+		font-family: var(--font-mono);
+		font-size: 0.85rem;
+		overflow: hidden;
+	}
+
+	.command {
+		display: flex;
+		align-items: center;
+		gap: 0.7rem;
+		padding: 0.5rem 0.5rem 0.5rem 1rem;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.command code {
+		flex: 1;
+	}
+
+	.prompt {
+		color: var(--accent);
+	}
+
+	.proof pre {
+		padding: 0.85rem 1rem;
+		overflow-x: auto;
+	}
+
+	.closing {
+		text-align: center;
+		background: radial-gradient(50rem 24rem at 50% 100%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%);
+	}
+
+	.closing .title {
+		margin-top: 0;
+		font-size: clamp(2.6rem, 6vw, 4.5rem);
+	}
+
+	.closing-command {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-top: 2rem;
+		padding: 0.6rem 0.6rem 0.6rem 1.1rem;
+		border: 1px solid var(--line-strong);
+		border-radius: 14px;
+		background: var(--bg-sunken);
+		box-shadow: var(--shadow);
+		font-family: var(--font-mono);
+		font-size: 1.05rem;
+	}
+
+	.cta {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.6rem;
+		margin-top: 1.5rem;
+	}
+
+	.button {
+		display: inline-flex;
+		align-items: center;
+		height: 2.75rem;
+		padding-inline: 1.2rem;
+		border: 1px solid var(--line-strong);
+		border-radius: 999px;
+		font-size: 0.92rem;
+		font-weight: 500;
+		transition:
+			border-color 0.15s,
+			background 0.15s,
+			transform 0.15s;
+	}
+
+	.button:hover {
+		border-color: var(--accent);
+		transform: translateY(-2px);
+	}
+
+	.button.primary {
+		background: var(--accent);
+		border-color: var(--accent);
+		color: var(--accent-ink);
+		font-weight: 600;
+	}
+
+	.button.primary:hover {
+		background: var(--accent-strong);
+	}
+
+	@media (max-width: 860px) {
+		.invariant {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+</style>

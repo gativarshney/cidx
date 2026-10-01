@@ -1,0 +1,827 @@
+---
+import CopyButton from './CopyButton.astro';
+import graph from '../data/graph.json';
+import demo from '../data/demo.json';
+import { nodes, search } from '../scripts/index-data';
+import { href, liveMeta, PYPI_URL, REPO_URL, sourceVersion } from '../util/site';
+import { formatNumber } from '../util/tint';
+
+const { pypiVersion } = await liveMeta();
+const version = sourceVersion();
+const installs = [
+	{ id: 'pip', label: 'pip', command: 'pip install cidx' },
+	{ id: 'uv', label: 'uvx', command: 'uvx cidx index --repo .' },
+];
+const { counts, provenance } = graph;
+
+// Static first paint and no-WebGL fallback: the same nodes, projected once.
+const radius = Math.max(...nodes.map((node) => Math.hypot(...node.p)));
+const angle = 0.6;
+const project = (p: number[]) => {
+	const x = p[0] * Math.cos(angle) + p[2] * Math.sin(angle);
+	const z = -p[0] * Math.sin(angle) + p[2] * Math.cos(angle);
+	const depth = 1 / (1 - (z / radius) * 0.28);
+	return { x: (x / radius) * 250 * depth + 300, y: (-p[1] / radius) * 250 * depth + 300, depth };
+};
+const ranked = nodes.map((node, index) => ({ node, index })).sort((a, b) => b.node.inbound - a.node.inbound);
+const shown = new Set(ranked.slice(0, 170).map((entry) => entry.index));
+const dots = ranked.slice(0, 170).map(({ node }) => ({ ...project(node.p), kind: node.kind, r: 1.2 + Math.log2(1 + node.inbound) * 0.55 }));
+const lines = graph.edges
+	.filter(([source, target]) => shown.has(source) && shown.has(target))
+	.map(([source, target, , confidence]) => ({ a: project(nodes[source].p), b: project(nodes[target].p), confidence }));
+const confidenceVar = ['--exact', '--import', '--name-only'];
+
+// The console's first state is rendered here, so it is useful before any script runs.
+const firstQuery = 'echo';
+const firstResults = search(firstQuery, 4);
+const firstNode = nodes[firstResults[0]];
+const readyStatus = `${formatNumber(counts.files)} files · ${formatNumber(counts.symbols)} symbols · ${formatNumber(counts.refs)} refs`;
+---
+
+<section class="hero" data-hero>
+	<div class="graph" data-graph>
+		<svg class="fallback" viewBox="0 0 600 600" aria-hidden="true">
+			{lines.map((line) => (
+				<line x1={line.a.x.toFixed(0)} y1={line.a.y.toFixed(0)} x2={line.b.x.toFixed(0)} y2={line.b.y.toFixed(0)} stroke={`var(${confidenceVar[line.confidence]})`} />
+			))}
+			{dots.map((dot) => (
+				<circle cx={dot.x.toFixed(0)} cy={dot.y.toFixed(0)} r={(dot.r * dot.depth).toFixed(1)} fill={`var(--g-${dot.kind})`} />
+			))}
+		</svg>
+		<canvas aria-hidden="true"></canvas>
+		<div class="labels" data-graph-labels aria-hidden="true"></div>
+		<div class="tip" data-graph-tip hidden>
+			<strong data-name></strong>
+			<span><span data-kind></span> · <span data-loc></span></span>
+			<span data-inbound></span>
+		</div>
+	</div>
+
+	<div class="wrap content">
+		<div class="pitch">
+			<p class="eyebrow">Local code index · MCP server · zero config</p>
+			<h1>
+				<span class="rise" style="--i: 0">A local code index</span>
+				<span class="rise" style="--i: 1">for <em>AI coding agents.</em></span>
+			</h1>
+			<p class="sub rise" style="--i: 2">
+				cidx parses your repository into symbols and references, keeps the index fresh on every
+				save, and answers your agent over MCP with <code>path:line</code> results that fit in about
+				700 tokens. No API keys, no vector database, no cloud.
+			</p>
+
+			<div class="install rise" style="--i: 3" data-install>
+				<div class="tabs" role="tablist" aria-label="Install method">
+					{installs.map((install, index) => (
+						<button type="button" role="tab" id={`install-tab-${install.id}`} aria-controls={`install-${install.id}`} aria-selected={index === 0 ? 'true' : 'false'} tabindex={index === 0 ? 0 : -1}>
+							{install.label}
+						</button>
+					))}
+				</div>
+				{installs.map((install, index) => (
+					<div class="command" role="tabpanel" id={`install-${install.id}`} aria-labelledby={`install-tab-${install.id}`} hidden={index !== 0}>
+						<span class="prompt" aria-hidden="true">$</span>
+						<code>{install.command}</code>
+						<CopyButton text={install.command} label={`Copy: ${install.command}`} />
+					</div>
+				))}
+			</div>
+
+			<div class="cta rise" style="--i: 4">
+				<a class="button primary" href="#connect">
+					Add it to your agent
+					<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4"></path></svg>
+				</a>
+				<a class="button" href={href('/docs/quickstart/')}>Docs</a>
+				<a class="button" href={REPO_URL}>GitHub</a>
+				<a class="button" href={PYPI_URL}>
+					PyPI
+					<span class="version" data-live="pypi" hidden={pypiVersion === null}>{pypiVersion}</span>
+				</a>
+			</div>
+
+			<p class="fine rise" style="--i: 5">
+				Python 3.11 to 3.13 · Windows, macOS, Linux · Apache-2.0
+				{pypiVersion !== null && pypiVersion !== version && (
+					<span class="pending" data-source-version={version}>
+						This site documents {version}. PyPI currently serves {pypiVersion}.
+					</span>
+				)}
+			</p>
+		</div>
+
+		<div class="explorer rise" style="--i: 6" data-explorer data-files={counts.files} data-symbols={counts.symbols}>
+			<div class="explorer-head">
+				<span class="live-dot" aria-hidden="true"></span>
+				<span class="repo">{provenance.repository}</span>
+				<span class="status" data-status>{readyStatus}</span>
+			</div>
+			<label class="query">
+				<span class="fn">search_symbols(</span>
+				<input type="text" data-query value={firstQuery} spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Search the index of pallets/click by symbol name" aria-controls="explorer-results" />
+				<span class="fn">)</span>
+			</label>
+			<ul class="results" id="explorer-results" role="listbox" aria-label="Matching definitions" data-results>
+				{firstResults.map((index, position) => (
+					<li role="option" data-node={index} aria-selected={position === 0 ? 'true' : 'false'}>
+						<strong>{nodes[index].name}</strong>
+						<span class="t-kind">{nodes[index].kind}</span>
+						<span class="t-loc">{nodes[index].path}:{nodes[index].line}</span>
+					</li>
+				))}
+			</ul>
+			<div class="detail" data-detail aria-live="polite">
+				{firstNode.signature && <p class="signature">{firstNode.signature}</p>}
+				<p class="call">references resolved to this definition<span>{firstNode.refs}</span></p>
+				<ul>
+					{firstNode.sample.map((ref) => (
+						<li><span class="t-loc">{ref.path}:{ref.line}</span> <span class={`t-${ref.confidence}`}>[{ref.confidence}]</span></li>
+					))}
+				</ul>
+				{firstNode.refs > firstNode.sample.length && <p class="more">+ {firstNode.refs - firstNode.sample.length} more</p>}
+			</div>
+			<p class="hint">
+				Type a name, or click a node. This searches the index cidx built for{' '}
+				{provenance.repository}@{provenance.commit.slice(0, 7)}, in your browser.
+			</p>
+		</div>
+	</div>
+
+	<p class="caption wrap">
+		<span class="legend"><i style="background: var(--g-class)"></i>class</span>
+		<span class="legend"><i style="background: var(--g-function)"></i>function</span>
+		<span class="legend"><i style="background: var(--g-method)"></i>method</span>
+		<span class="legend"><i style="background: var(--g-const)"></i>const</span>
+		<span class="legend"><i class="edge" style="background: var(--exact)"></i>exact</span>
+		<span class="legend"><i class="edge" style="background: var(--import)"></i>import</span>
+		<span class="legend"><i class="edge" style="background: var(--name-only)"></i>name-only</span>
+		<span class="what">
+			{nodes.length} most connected definitions of {formatNumber(counts.symbols)} symbols, indexed by{' '}
+			{demo.provenance.cidx}. Drag to rotate.
+		</span>
+	</p>
+</section>
+
+<script>
+	// Install tabs
+	document.querySelectorAll<HTMLElement>('[data-install]').forEach((install) => {
+		const tabs = [...install.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+		const select = (tab: HTMLButtonElement) => {
+			for (const other of tabs) {
+				const active = other === tab;
+				other.setAttribute('aria-selected', String(active));
+				other.tabIndex = active ? 0 : -1;
+				document.getElementById(other.getAttribute('aria-controls')!)!.hidden = !active;
+			}
+		};
+		tabs.forEach((tab, index) => {
+			tab.addEventListener('click', () => select(tab));
+			tab.addEventListener('keydown', (event) => {
+				if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+				const next = tabs[(index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+				select(next);
+				next.focus();
+			});
+		});
+	});
+
+	// Published version: refresh in the browser, build-time value is the fallback.
+	fetch('https://pypi.org/pypi/cidx/json')
+		.then((response) => (response.ok ? response.json() : null))
+		.then((data) => {
+			const published = data?.info?.version;
+			if (typeof published !== 'string') return;
+			document.querySelectorAll<HTMLElement>('[data-live="pypi"]').forEach((badge) => {
+				badge.hidden = false;
+				badge.textContent = published;
+			});
+			document.querySelectorAll<HTMLElement>('[data-source-version]').forEach((note) => {
+				if (note.dataset.sourceVersion === published) note.remove();
+			});
+		})
+		.catch(() => {});
+
+	// The console and the 3D graph load after first paint; the SVG underneath
+	// and the server-rendered console state are the fallback.
+	const hero = document.querySelector<HTMLElement>('[data-hero]');
+	if (hero) {
+		const start = () => import('../scripts/explorer').then(({ mountExplorer }) => mountExplorer(hero)).catch(() => {});
+		if ('requestIdleCallback' in window) requestIdleCallback(start, { timeout: 800 });
+		else setTimeout(start, 150);
+	}
+</script>
+
+<style>
+	.hero {
+		position: relative;
+		margin-top: -4rem;
+		padding-top: 4rem;
+		min-height: min(100svh, 58rem);
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		isolation: isolate;
+		overflow: hidden;
+	}
+
+	.hero::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -2;
+		background:
+			radial-gradient(60rem 40rem at 78% 40%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%),
+			radial-gradient(40rem 30rem at 10% 0%, color-mix(in srgb, var(--exact) 7%, transparent), transparent 70%);
+		animation: drift 14s ease-in-out infinite alternate;
+	}
+
+	@keyframes drift {
+		to {
+			transform: translate3d(-3%, 2%, 0) scale(1.06);
+		}
+	}
+
+	.graph {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+	}
+
+	@media (min-width: 960px) {
+		.graph canvas,
+		.graph .labels {
+			mask-image: linear-gradient(to right, transparent 16%, #000 48%);
+		}
+	}
+
+	.graph canvas {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		opacity: 0;
+		cursor: grab;
+		touch-action: pan-y;
+	}
+
+	.graph canvas:active {
+		cursor: grabbing;
+	}
+
+	.fallback {
+		position: absolute;
+		right: max(-4rem, calc(50% - 46rem));
+		top: 50%;
+		width: min(46rem, 62vw);
+		translate: 0 -50%;
+		transition: opacity 0.5s;
+	}
+
+	.fallback line {
+		stroke-width: 0.6;
+		opacity: 0.28;
+	}
+
+	.fallback circle {
+		opacity: 0.85;
+	}
+
+	.graph:global(.live) canvas {
+		opacity: 1;
+	}
+
+	.graph:global(.live) .fallback {
+		opacity: 0;
+	}
+
+	.labels {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		overflow: hidden;
+	}
+
+	.labels :global(span) {
+		position: absolute;
+		left: 0;
+		top: 0;
+		font-family: var(--font-mono);
+		font-size: 0.7rem;
+		color: var(--text-soft);
+		white-space: nowrap;
+		opacity: 0;
+		will-change: transform;
+	}
+
+	.labels :global(span.strong) {
+		padding: 0.1rem 0.45rem;
+		border-radius: 6px;
+		font-size: 0.78rem;
+		font-weight: 600;
+		color: var(--bg);
+		background: var(--text);
+	}
+
+	.tip {
+		position: absolute;
+		left: 0;
+		top: 0;
+		display: grid;
+		gap: 0.15rem;
+		padding: 0.55rem 0.75rem;
+		border: 1px solid var(--line-strong);
+		border-radius: 10px;
+		background: color-mix(in srgb, var(--bg-raised) 92%, transparent);
+		backdrop-filter: blur(8px);
+		box-shadow: var(--shadow);
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		color: var(--muted);
+		white-space: nowrap;
+		pointer-events: none;
+		will-change: transform;
+	}
+
+	.tip[hidden] {
+		display: none;
+	}
+
+	.tip strong {
+		font-size: 0.82rem;
+		font-weight: 600;
+		color: var(--text);
+	}
+
+	.content {
+		display: grid;
+		grid-template-columns: minmax(0, 36rem) minmax(0, 1fr);
+		gap: 2rem;
+		padding-block: 3rem 1.5rem;
+		pointer-events: none;
+	}
+
+	.pitch > *,
+	.explorer {
+		pointer-events: auto;
+	}
+
+	/* staged entrance */
+	:global(.js) .rise {
+		opacity: 0;
+		animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+		animation-delay: calc(var(--i) * 90ms + 80ms);
+	}
+
+	@keyframes rise {
+		from {
+			opacity: 0;
+			transform: translateY(22px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	h1 {
+		font-family: var(--font-display);
+		font-weight: 400;
+		font-size: clamp(2.9rem, 6.6vw, 5.2rem);
+		line-height: 0.98;
+		letter-spacing: -0.015em;
+		margin-top: 1.4rem;
+	}
+
+	h1 span {
+		display: block;
+	}
+
+	h1 em {
+		color: var(--accent);
+	}
+
+	.sub {
+		margin-top: 1.5rem;
+		font-size: 1.1rem;
+		color: var(--text-soft);
+		text-wrap: pretty;
+	}
+
+	.sub code {
+		font-size: 0.9em;
+		color: var(--text);
+	}
+
+	.install {
+		margin-top: 2rem;
+		border: 1px solid var(--line-strong);
+		border-radius: 14px;
+		background: color-mix(in srgb, var(--bg-sunken) 88%, transparent);
+		backdrop-filter: blur(10px);
+		box-shadow: var(--shadow);
+		max-width: 30rem;
+	}
+
+	.tabs {
+		display: flex;
+		gap: 0.25rem;
+		padding: 0.4rem 0.5rem 0;
+		border-bottom: 1px solid var(--line);
+	}
+
+	.tabs button {
+		padding: 0.4rem 0.8rem;
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		color: var(--muted);
+		border-bottom: 2px solid transparent;
+		margin-bottom: -1px;
+	}
+
+	.tabs button[aria-selected='true'] {
+		color: var(--text);
+		border-bottom-color: var(--accent);
+	}
+
+	.command {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.65rem 0.6rem 0.65rem 1rem;
+		font-family: var(--font-mono);
+		font-size: 0.98rem;
+	}
+
+	.command[hidden] {
+		display: none;
+	}
+
+	.command code {
+		flex: 1;
+		overflow-x: auto;
+		white-space: nowrap;
+	}
+
+	.prompt {
+		color: var(--accent);
+		user-select: none;
+	}
+
+	.cta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		margin-top: 1.25rem;
+	}
+
+	.button {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		height: 2.75rem;
+		padding-inline: 1.15rem;
+		border: 1px solid var(--line-strong);
+		border-radius: 999px;
+		font-size: 0.92rem;
+		font-weight: 500;
+		background: color-mix(in srgb, var(--bg) 60%, transparent);
+		backdrop-filter: blur(8px);
+		transition:
+			border-color 0.15s,
+			background 0.15s,
+			transform 0.15s;
+	}
+
+	.button:hover {
+		border-color: var(--accent);
+		transform: translateY(-2px);
+	}
+
+	.button.primary {
+		background: var(--accent);
+		border-color: var(--accent);
+		color: var(--accent-ink);
+		font-weight: 600;
+		box-shadow: 0 8px 30px color-mix(in srgb, var(--accent) 35%, transparent);
+	}
+
+	.button.primary:hover {
+		background: var(--accent-strong);
+		border-color: var(--accent-strong);
+	}
+
+	.button.primary svg {
+		animation: nudge 1.8s ease-in-out infinite;
+	}
+
+	@keyframes nudge {
+		50% {
+			transform: translateY(3px);
+		}
+	}
+
+	.version {
+		font-family: var(--font-mono);
+		font-size: 0.75rem;
+		color: var(--muted);
+	}
+
+	.version[hidden] {
+		display: none;
+	}
+
+	.fine {
+		margin-top: 1.25rem;
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		color: var(--muted);
+	}
+
+	.pending {
+		display: block;
+		margin-top: 0.3rem;
+		color: var(--name-only);
+	}
+
+	/* --- query console ------------------------------------------------ */
+
+	.explorer {
+		align-self: end;
+		justify-self: end;
+		width: min(100%, 25.5rem);
+		border: 1px solid var(--line-strong);
+		border-radius: 16px;
+		background: color-mix(in srgb, var(--bg-sunken) 78%, transparent);
+		backdrop-filter: blur(16px) saturate(1.3);
+		box-shadow: var(--shadow);
+		font-family: var(--font-mono);
+		font-size: 0.74rem;
+		overflow: hidden;
+	}
+
+	.explorer-head {
+		display: flex;
+		align-items: center;
+		gap: 0.55rem;
+		padding: 0.6rem 0.9rem;
+		border-bottom: 1px solid var(--line);
+		color: var(--muted);
+		font-size: 0.68rem;
+	}
+
+	.live-dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 50%;
+		background: var(--exact);
+		box-shadow: 0 0 0 0 color-mix(in srgb, var(--exact) 70%, transparent);
+		animation: beat 2s ease-out infinite;
+	}
+
+	.explorer:global(.building) .live-dot {
+		background: var(--name-only);
+	}
+
+	@keyframes beat {
+		to {
+			box-shadow: 0 0 0 0.5rem transparent;
+		}
+	}
+
+	.repo {
+		color: var(--text);
+	}
+
+	.status {
+		margin-left: auto;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.query {
+		display: flex;
+		align-items: center;
+		padding: 0.75rem 0.9rem;
+		font-size: 0.9rem;
+		cursor: text;
+	}
+
+	.fn {
+		color: var(--accent);
+		white-space: nowrap;
+	}
+
+	.query input {
+		flex: 1;
+		min-width: 0;
+		padding: 0.15rem 0.3rem;
+		border: 0;
+		border-bottom: 1px dashed var(--line-strong);
+		background: none;
+		color: var(--text);
+		font: inherit;
+		font-weight: 600;
+		outline: none;
+		caret-color: var(--accent);
+	}
+
+	.query input:focus-visible {
+		border-bottom-color: var(--accent);
+		border-radius: 0;
+	}
+
+	.results {
+		border-top: 1px solid var(--line);
+		min-height: 6.6rem;
+	}
+
+	.results :global(li) {
+		display: flex;
+		align-items: baseline;
+		gap: 0.6rem;
+		padding: 0.32rem 0.9rem;
+		border-left: 2px solid transparent;
+		white-space: nowrap;
+		overflow: hidden;
+		cursor: pointer;
+		transition: background 0.12s;
+	}
+
+	.results :global(li:hover) {
+		background: color-mix(in srgb, var(--text) 5%, transparent);
+	}
+
+	.results :global(li[aria-selected='true']) {
+		border-left-color: var(--accent);
+		background: color-mix(in srgb, var(--accent) 12%, transparent);
+	}
+
+	.results :global(strong) {
+		font-weight: 600;
+		color: var(--text);
+	}
+
+	.results :global(.t-loc) {
+		margin-left: auto;
+		color: var(--muted);
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.results :global(li.empty) {
+		color: var(--muted);
+		cursor: default;
+		white-space: normal;
+		font-family: var(--font-sans);
+		font-size: 0.82rem;
+	}
+
+	.detail {
+		padding: 0.7rem 0.9rem 0.8rem;
+		border-top: 1px solid var(--line);
+		min-height: 9.2rem;
+		color: var(--text-soft);
+	}
+
+	.detail :global(.signature) {
+		color: var(--muted);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.detail :global(.call) {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-top: 0.5rem;
+		color: var(--accent);
+	}
+
+	.detail :global(.call span) {
+		color: var(--text);
+	}
+
+	.detail :global(ul) {
+		margin-top: 0.3rem;
+	}
+
+	.detail :global(ul li) {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		animation: row 0.35s both;
+	}
+
+	.detail :global(ul li:nth-child(2)) {
+		animation-delay: 50ms;
+	}
+	.detail :global(ul li:nth-child(3)) {
+		animation-delay: 100ms;
+	}
+	.detail :global(ul li:nth-child(4)) {
+		animation-delay: 150ms;
+	}
+
+	@keyframes row {
+		from {
+			opacity: 0;
+			transform: translateX(-6px);
+		}
+	}
+
+	.detail :global(.more),
+	.detail :global(.none) {
+		color: var(--muted);
+	}
+
+	.hint {
+		padding: 0.55rem 0.9rem;
+		border-top: 1px solid var(--line);
+		font-family: var(--font-sans);
+		font-size: 0.72rem;
+		color: var(--muted);
+	}
+
+	/* --- caption ------------------------------------------------------ */
+
+	.caption {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.4rem 1.1rem;
+		padding-bottom: 1.5rem;
+		font-family: var(--font-mono);
+		font-size: 0.68rem;
+		color: var(--muted);
+	}
+
+	.legend {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.legend i {
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 50%;
+	}
+
+	.legend i.edge {
+		width: 0.9rem;
+		height: 2px;
+		border-radius: 0;
+	}
+
+	.what {
+		margin-left: auto;
+		text-align: right;
+	}
+
+	@media (max-width: 959px) {
+		.hero {
+			min-height: 0;
+		}
+		.hero::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			z-index: -1;
+			background: linear-gradient(to bottom, transparent 0, color-mix(in srgb, var(--bg) 78%, transparent) 22rem, var(--bg) 34rem);
+			pointer-events: none;
+		}
+		.fallback {
+			right: 50%;
+			top: 1rem;
+			width: min(34rem, 110vw);
+			translate: 50% 0;
+		}
+		.content {
+			grid-template-columns: minmax(0, 1fr);
+			padding-top: 15rem;
+		}
+		.graph canvas {
+			pointer-events: none;
+		}
+		.explorer {
+			justify-self: stretch;
+			width: 100%;
+		}
+		.what {
+			margin-left: 0;
+			text-align: left;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.hero::before,
+		.button.primary svg,
+		.live-dot {
+			animation: none;
+		}
+		:global(.js) .rise {
+			opacity: 1;
+			animation: none;
+		}
+	}
+</style>

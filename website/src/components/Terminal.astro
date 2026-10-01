@@ -1,0 +1,428 @@
+---
+import demo from '../data/demo.json';
+import { tint } from '../util/tint';
+
+interface Step {
+	kind: 'shell' | 'agent' | 'note';
+	text: string;
+	output?: string;
+	meta?: string;
+}
+
+const shell = (entry: { command: string; output: string }): Step => ({
+	kind: 'shell',
+	text: entry.command, // shown exactly as it was run
+	output: entry.output,
+});
+const samples = demo.live.samplesMs;
+
+const scenes: { id: string; label: string; caption: string; steps: Step[] }[] = [
+	{
+		id: 'index',
+		label: 'Index',
+		caption: 'One command builds the index. It lives in your user cache, never inside the repository.',
+		steps: [shell(demo.cli.index), shell(demo.cli.stats)],
+	},
+	{
+		id: 'define',
+		label: 'Definitions',
+		caption: 'Exact names first. If nothing matches exactly, the same ranked fuzzy search the MCP server uses.',
+		steps: [shell(demo.cli.definition), shell(demo.cli.fuzzy)],
+	},
+	{
+		id: 'refs',
+		label: 'References',
+		caption: 'Each usage carries a confidence tag that says how it was matched to its definition.',
+		steps: [shell(demo.cli.references)],
+	},
+	{
+		id: 'outline',
+		label: 'Outline',
+		caption: 'Every symbol in a file, in source order, without opening the file.',
+		steps: [shell(demo.cli.outline)],
+	},
+	{
+		id: 'live',
+		label: 'Live edit',
+		caption: `The watcher re-indexes only the saved file. Median of ${samples.length} saves on this repository: ${demo.live.medianMs} ms from save to queryable (range ${samples[0]} to ${samples[samples.length - 1]} ms).`,
+		steps: [
+			{ kind: 'note', text: '# cidx serve is running, started by the MCP client' },
+			{ kind: 'note', text: '# you save src/click/utils.py with one new line: def live_demo_symbol(): pass' },
+			{
+				kind: 'agent',
+				text: 'find_definition("live_demo_symbol")',
+				output: demo.live.after.text,
+				meta: `answered ${demo.live.medianMs} ms after the save`,
+			},
+			shell(demo.live.check),
+		],
+	},
+];
+const { provenance } = demo;
+---
+
+<div class="terminal" data-terminal>
+	<div class="bar">
+		<span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+		<div class="tabs" role="tablist" aria-label="Demo scenes">
+			{scenes.map((scene, index) => (
+				<button type="button" role="tab" id={`scene-tab-${scene.id}`} aria-controls={`scene-${scene.id}`} aria-selected={index === 0 ? 'true' : 'false'} tabindex={index === 0 ? 0 : -1}>
+					{scene.label}
+				</button>
+			))}
+		</div>
+		<button type="button" class="replay" data-replay aria-label="Replay this scene">
+			<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>
+		</button>
+	</div>
+	{scenes.map((scene, index) => (
+		<div class="scene" role="tabpanel" id={`scene-${scene.id}`} aria-labelledby={`scene-tab-${scene.id}`} hidden={index !== 0} tabindex="0">
+			<div class="screen">
+				{scene.steps.map((step) => (
+					<div class="step" data-step data-kind={step.kind}>
+						<div class="line">
+							{step.kind === 'shell' && <span class="prompt" aria-hidden="true">$</span>}
+							{step.kind === 'agent' && <span class="agent">agent calls</span>}
+							<span class="typed" data-typed>{step.text}</span>
+							{step.meta && <span class="badge" data-out>{step.meta}</span>}
+						</div>
+						{step.output && <pre class="out" data-out set:html={tint(step.output)} />}
+					</div>
+				))}
+				<span class="cursor" aria-hidden="true"></span>
+			</div>
+			<p class="caption">{scene.caption}</p>
+		</div>
+	))}
+	<p class="provenance">
+		Real output: {provenance.cidx} on
+		<a href={`https://github.com/${provenance.repository}/tree/${provenance.commit}`}>{provenance.repository}@{provenance.commit.slice(0, 7)}</a>,
+		captured {provenance.captured} on {provenance.machine.os.replace('Windows_NT', 'Windows')}, {provenance.machine.cpu}.
+	</p>
+</div>
+
+<script>
+	const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+	document.querySelectorAll<HTMLElement>('[data-terminal]').forEach((terminal) => {
+		const tabs = [...terminal.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+		const panels = tabs.map((tab) => document.getElementById(tab.getAttribute('aria-controls')!)!);
+		let current = 0;
+		let run = 0; // increments to cancel an animation in flight
+		let autoplay = !reduceMotion;
+
+		async function play(panel: HTMLElement) {
+			const token = ++run;
+			const steps = [...panel.querySelectorAll<HTMLElement>('[data-step]')];
+			const screen = panel.querySelector<HTMLElement>('.screen')!;
+			screen.scrollTop = 0;
+			if (reduceMotion) return;
+			panel.classList.add('animating');
+			for (const step of steps) {
+				step.classList.remove('shown', 'done');
+				const typed = step.querySelector<HTMLElement>('[data-typed]')!;
+				typed.dataset.full ??= typed.textContent ?? '';
+				typed.textContent = '';
+			}
+			for (const step of steps) {
+				if (token !== run) return;
+				step.classList.add('shown');
+				const typed = step.querySelector<HTMLElement>('[data-typed]')!;
+				const full = typed.dataset.full!;
+				if (step.dataset.kind === 'note') {
+					typed.textContent = full;
+				} else {
+					const stride = full.length > 48 ? 2 : 1;
+					for (let at = stride; at < full.length + stride; at += stride) {
+						if (token !== run) return;
+						typed.textContent = full.slice(0, at);
+						await sleep(22);
+					}
+				}
+				await sleep(step.dataset.kind === 'note' ? 350 : 280);
+				if (token !== run) return;
+				step.classList.add('done');
+				screen.scrollTo({ top: screen.scrollHeight, behavior: 'smooth' });
+				await sleep(700);
+			}
+			panel.classList.remove('animating');
+			if (token !== run || !autoplay) return;
+			await sleep(4200);
+			if (token === run && autoplay) select((current + 1) % tabs.length);
+		}
+
+		function reset(panel: HTMLElement) {
+			panel.classList.remove('animating');
+			panel.querySelectorAll<HTMLElement>('[data-typed]').forEach((typed) => {
+				if (typed.dataset.full) typed.textContent = typed.dataset.full;
+			});
+		}
+
+		function select(index: number, focus = false) {
+			reset(panels[current]);
+			current = index;
+			tabs.forEach((tab, at) => {
+				tab.setAttribute('aria-selected', String(at === index));
+				tab.tabIndex = at === index ? 0 : -1;
+				panels[at].hidden = at !== index;
+			});
+			if (focus) tabs[index].focus();
+			play(panels[index]);
+		}
+
+		const stopAutoplay = () => {
+			autoplay = false;
+		};
+		tabs.forEach((tab, index) => {
+			tab.addEventListener('click', () => {
+				stopAutoplay();
+				select(index);
+			});
+			tab.addEventListener('keydown', (event) => {
+				if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+				stopAutoplay();
+				select((index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length, true);
+			});
+		});
+		terminal.querySelector('[data-replay]')?.addEventListener('click', () => {
+			stopAutoplay();
+			select(current);
+		});
+		terminal.addEventListener('pointerdown', (event) => {
+			if ((event.target as HTMLElement).closest('.screen')) {
+				stopAutoplay();
+				run += 1;
+				reset(panels[current]);
+				panels[current].querySelectorAll('[data-step]').forEach((step) => step.classList.add('shown', 'done'));
+			}
+		});
+
+		// start the first scene when the terminal scrolls into view
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (!entry.isIntersecting) return;
+				observer.disconnect();
+				play(panels[0]);
+			},
+			{ threshold: 0.35 },
+		);
+		observer.observe(terminal);
+	});
+</script>
+
+<style>
+	.terminal {
+		border: 1px solid var(--line-strong);
+		border-radius: 16px;
+		background: var(--bg-sunken);
+		box-shadow: var(--shadow);
+		overflow: hidden;
+	}
+
+	.bar {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 0 0.75rem 0 1rem;
+		border-bottom: 1px solid var(--line);
+		background: var(--bg-raised);
+	}
+
+	.lights {
+		display: flex;
+		gap: 0.4rem;
+	}
+
+	.lights i {
+		width: 0.65rem;
+		height: 0.65rem;
+		border-radius: 50%;
+		background: var(--line-strong);
+	}
+
+	.tabs {
+		display: flex;
+		overflow-x: auto;
+		scrollbar-width: none;
+		flex: 1;
+	}
+
+	.tabs button {
+		padding: 0.85rem 0.9rem;
+		font-family: var(--font-mono);
+		font-size: 0.78rem;
+		color: var(--muted);
+		white-space: nowrap;
+		border-bottom: 2px solid transparent;
+		margin-bottom: -1px;
+		transition: color 0.15s;
+	}
+
+	.tabs button:hover {
+		color: var(--text);
+	}
+
+	.tabs button[aria-selected='true'] {
+		color: var(--text);
+		border-bottom-color: var(--accent);
+	}
+
+	.replay {
+		width: 2rem;
+		height: 2rem;
+		display: grid;
+		place-items: center;
+		border-radius: 8px;
+		color: var(--muted);
+	}
+
+	.replay:hover {
+		color: var(--text);
+		background: color-mix(in srgb, var(--text) 8%, transparent);
+	}
+
+	.scene[hidden] {
+		display: none;
+	}
+
+	.screen {
+		height: 23rem;
+		overflow: auto;
+		padding: 1.25rem 1.25rem 1rem;
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		line-height: 1.65;
+		scrollbar-width: thin;
+		scrollbar-color: var(--line-strong) transparent;
+	}
+
+	.step + .step {
+		margin-top: 0.9rem;
+	}
+
+	.line {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.6rem;
+		color: var(--text);
+	}
+
+	.prompt {
+		color: var(--accent);
+		user-select: none;
+	}
+
+	.agent {
+		padding: 0.05rem 0.5rem;
+		border-radius: 999px;
+		font-size: 0.68rem;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--accent-ink);
+		background: var(--accent);
+	}
+
+	[data-kind='note'] .typed {
+		color: var(--muted);
+	}
+
+	.typed {
+		white-space: pre-wrap;
+		word-break: break-word;
+	}
+
+	.badge {
+		margin-left: auto;
+		padding: 0.05rem 0.55rem;
+		border: 1px solid color-mix(in srgb, var(--exact) 45%, transparent);
+		border-radius: 999px;
+		font-size: 0.7rem;
+		color: var(--exact);
+	}
+
+	.out {
+		margin-top: 0.3rem;
+		color: var(--text-soft);
+		white-space: pre;
+		width: max-content;
+		min-width: 100%;
+	}
+
+	.cursor {
+		display: none;
+	}
+
+	/* animation states: only while a scene is being played */
+	.scene:global(.animating) .step {
+		display: none;
+	}
+
+	.scene:global(.animating) .step:global(.shown) {
+		display: block;
+	}
+
+	.scene:global(.animating) [data-out] {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+
+	.scene:global(.animating) .step:global(.done) [data-out] {
+		opacity: 1;
+		transform: none;
+		transition:
+			opacity 0.35s,
+			transform 0.35s;
+	}
+
+	.scene:global(.animating) .step:global(.shown):not(:global(.done)) .typed::after {
+		content: '';
+		display: inline-block;
+		width: 0.55em;
+		height: 1.05em;
+		margin-left: 1px;
+		vertical-align: text-bottom;
+		background: var(--accent);
+		animation: blink 1s steps(2) infinite;
+	}
+
+	@keyframes blink {
+		50% {
+			opacity: 0;
+		}
+	}
+
+	.caption {
+		padding: 0.9rem 1.25rem;
+		border-top: 1px solid var(--line);
+		font-size: 0.9rem;
+		color: var(--text-soft);
+		min-height: 4.2rem;
+	}
+
+	.provenance {
+		padding: 0.6rem 1.25rem;
+		border-top: 1px solid var(--line);
+		background: var(--bg-raised);
+		font-family: var(--font-mono);
+		font-size: 0.68rem;
+		color: var(--muted);
+	}
+
+	.provenance a {
+		color: var(--text-soft);
+		border-bottom: 1px solid var(--line-strong);
+	}
+
+	@media (max-width: 640px) {
+		.screen {
+			height: 21rem;
+			font-size: 0.72rem;
+			padding-inline: 1rem;
+		}
+		.lights {
+			display: none;
+		}
+	}
+</style>

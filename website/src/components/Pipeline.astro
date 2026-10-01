@@ -1,0 +1,321 @@
+---
+import graph from '../data/graph.json';
+import { formatNumber } from '../util/tint';
+
+const { byConfidence } = graph.counts as { byConfidence: Record<string, number> };
+
+const stages = [
+	{
+		id: 'parse',
+		label: 'Parse',
+		tech: 'tree-sitter',
+		what: 'Every Python, TypeScript, TSX and JavaScript file is parsed from raw bytes. Extraction patterns live in .scm query files, one per grammar, and emit symbols (name, kind, lines, signature, parent) and raw references.',
+		why: 'tree-sitter is error tolerant. A half-written file still produces a tree, so the index survives every save, including the broken ones in the middle of an edit.',
+		facts: ['4 grammars', 'functions · classes · methods · consts · imports', 'files over 1 MiB skipped'],
+	},
+	{
+		id: 'store',
+		label: 'Store',
+		tech: 'SQLite',
+		what: 'Rows land in one SQLite file: files, symbols, refs, and an FTS5 table for fuzzy name search. The file lives in your user cache, keyed by a hash of the repository path.',
+		why: 'Durability and crash safety come from the database, not from custom code. WAL mode lets the watcher write while the MCP server reads. Nothing is ever written inside your repository.',
+		facts: ['stdlib sqlite3', 'WAL + FTS5', 'one transaction per file'],
+	},
+	{
+		id: 'fresh',
+		label: 'Stay fresh',
+		tech: 'watcher + content hashes',
+		what: 'A save is debounced for 100 ms, then the file is hashed with BLAKE2b. Same hash: stop. Different: re-parse and swap that file\'s rows in a single transaction. Every 30 seconds a sweep re-checks the whole tree.',
+		why: 'A stale index silently misleads an agent. Operating systems drop file events under load, so the sweep is the slow path that guarantees truth. A crash mid-update rolls back: the index is never half-written.',
+		facts: ['100 ms debounce', '30 s reconciliation sweep', 'honors .gitignore'],
+	},
+	{
+		id: 'resolve',
+		label: 'Resolve',
+		tech: 'confidence tags',
+		what: 'Each reference is matched to a definition by a fixed cascade: a definition in the same file (exact), then an import followed to its source file (import), then a unique name across the repository (name-only). A reference with no match, or with several candidates, is also tagged name-only and has no target.',
+		why: 'There is no type checker, so cidx says how each match was made instead of promising precision. An agent can trust exact and import, and treat name-only as a lead.',
+		facts: [
+			`click: ${formatNumber(byConfidence.exact)} exact`,
+			`${formatNumber(byConfidence.import)} import`,
+			`${formatNumber(byConfidence['name-only'])} name-only`,
+		],
+	},
+	{
+		id: 'answer',
+		label: 'Answer',
+		tech: 'rank, budget, MCP',
+		what: 'Five read-only MCP tools over stdio. Search results are ranked by match tier, symbol kind, reference count, path locality and edit recency. Every answer is trimmed to about 700 tokens and stamped with the index age.',
+		why: 'A tool that cannot write or execute has no prompt-injection blast radius. Every miss tells the agent to fall back to grep, so the worst case with cidx equals not having it.',
+		facts: ['5 tools, all read-only', '~700 tokens per answer', 'truncation marker + index_age_ms'],
+	},
+];
+---
+
+<div class="pipeline" data-pipeline data-reveal>
+	<div class="flow" role="tablist" aria-label="Pipeline stages">
+		<div class="source" aria-hidden="true">
+			<span>your repo</span>
+			<small>.py .ts .tsx .js</small>
+		</div>
+		{stages.map((stage, index) => (
+			<>
+				<span class="wire" aria-hidden="true"><i style={`animation-delay: ${index * 0.35}s`}></i></span>
+				<button type="button" role="tab" id={`stage-tab-${stage.id}`} aria-controls={`stage-${stage.id}`} aria-selected={index === 0 ? 'true' : 'false'} tabindex={index === 0 ? 0 : -1}>
+					<span class="step">{String(index + 1).padStart(2, '0')}</span>
+					<span class="name">{stage.label}</span>
+					<span class="tech">{stage.tech}</span>
+				</button>
+			</>
+		))}
+		<span class="wire" aria-hidden="true"><i style="animation-delay: 1.75s"></i></span>
+		<div class="source" aria-hidden="true">
+			<span>your agent</span>
+			<small>path:line answers</small>
+		</div>
+	</div>
+
+	{stages.map((stage, index) => (
+		<div class="detail" role="tabpanel" id={`stage-${stage.id}`} aria-labelledby={`stage-tab-${stage.id}`} hidden={index !== 0} tabindex="0">
+			<div>
+				<h3>What happens</h3>
+				<p>{stage.what}</p>
+			</div>
+			<div>
+				<h3>Why it is built this way</h3>
+				<p>{stage.why}</p>
+			</div>
+			<ul class="facts">
+				{stage.facts.map((fact) => <li>{fact}</li>)}
+			</ul>
+		</div>
+	))}
+</div>
+
+<script>
+	document.querySelectorAll<HTMLElement>('[data-pipeline]').forEach((pipeline) => {
+		const tabs = [...pipeline.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+		let current = 0;
+		let timer: number | undefined;
+
+		const select = (index: number, focus = false) => {
+			current = index;
+			tabs.forEach((tab, at) => {
+				tab.setAttribute('aria-selected', String(at === index));
+				tab.tabIndex = at === index ? 0 : -1;
+				document.getElementById(tab.getAttribute('aria-controls')!)!.hidden = at !== index;
+			});
+			if (focus) tabs[index].focus();
+			// keep the active stage visible when the row scrolls sideways on small screens
+			const flow = tabs[index].parentElement!;
+			if (flow.scrollWidth > flow.clientWidth) {
+				flow.scrollTo({ left: tabs[index].offsetLeft - (flow.clientWidth - tabs[index].offsetWidth) / 2, behavior: 'smooth' });
+			}
+		};
+		const stop = () => clearInterval(timer);
+
+		tabs.forEach((tab, index) => {
+			tab.addEventListener('click', () => {
+				stop();
+				select(index);
+			});
+			tab.addEventListener('keydown', (event) => {
+				if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+				stop();
+				select((index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length, true);
+			});
+		});
+
+		if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			const observer = new IntersectionObserver(([entry]) => {
+				stop();
+				if (entry.isIntersecting) {
+					timer = window.setInterval(() => select((current + 1) % tabs.length), 6500);
+				}
+			});
+			observer.observe(pipeline);
+			pipeline.addEventListener('pointerdown', stop);
+			pipeline.addEventListener('focusin', stop);
+		}
+	});
+</script>
+
+<style>
+	.pipeline {
+		border: 1px solid var(--line-strong);
+		border-radius: 18px;
+		background: var(--bg-raised);
+		overflow: hidden;
+	}
+
+	.flow {
+		position: relative;
+		display: flex;
+		align-items: stretch;
+		padding: 1.5rem;
+		overflow-x: auto;
+		scrollbar-width: none;
+		background:
+			linear-gradient(var(--bg-sunken), var(--bg-sunken)) padding-box,
+			var(--bg-sunken);
+		border-bottom: 1px solid var(--line);
+	}
+
+	.source {
+		flex: none;
+		display: grid;
+		align-content: center;
+		gap: 0.15rem;
+		padding-inline: 0.25rem;
+		font-family: var(--font-mono);
+		font-size: 0.78rem;
+		color: var(--text-soft);
+		white-space: nowrap;
+	}
+
+	.source small {
+		font-size: 0.66rem;
+		color: var(--muted);
+	}
+
+	.wire {
+		flex: 1 0 1.5rem;
+		align-self: center;
+		position: relative;
+		height: 1px;
+		margin-inline: 0.4rem;
+		background: var(--line-strong);
+	}
+
+	.wire i {
+		position: absolute;
+		top: -2px;
+		left: 0;
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		background: var(--accent);
+		box-shadow: 0 0 8px var(--accent);
+		animation: travel 2.1s linear infinite;
+	}
+
+	@keyframes travel {
+		from {
+			left: 0;
+			opacity: 0;
+		}
+		15%,
+		85% {
+			opacity: 1;
+		}
+		to {
+			left: calc(100% - 5px);
+			opacity: 0;
+		}
+	}
+
+	[role='tab'] {
+		flex: none;
+		display: grid;
+		gap: 0.2rem;
+		min-width: 8.25rem;
+		padding: 0.8rem 0.9rem;
+		border: 1px solid var(--line-strong);
+		border-radius: 12px;
+		background: var(--bg-raised);
+		text-align: left;
+		transition:
+			border-color 0.2s,
+			background 0.2s,
+			transform 0.2s;
+	}
+
+	[role='tab']:hover {
+		border-color: var(--muted);
+	}
+
+	[role='tab'][aria-selected='true'] {
+		border-color: var(--accent);
+		background: color-mix(in srgb, var(--accent) 12%, var(--bg-raised));
+		transform: translateY(-2px);
+	}
+
+	.step {
+		font-family: var(--font-mono);
+		font-size: 0.66rem;
+		color: var(--muted);
+	}
+
+	[aria-selected='true'] .step {
+		color: var(--accent);
+	}
+
+	.name {
+		font-weight: 600;
+		font-size: 0.98rem;
+	}
+
+	.tech {
+		font-family: var(--font-mono);
+		font-size: 0.68rem;
+		color: var(--muted);
+		white-space: nowrap;
+	}
+
+	.detail {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1.5rem 2.5rem;
+		padding: 1.75rem 1.5rem;
+		min-height: 15rem;
+	}
+
+	.detail[hidden] {
+		display: none;
+	}
+
+	h3 {
+		font-family: var(--font-mono);
+		font-size: 0.7rem;
+		font-weight: 500;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--muted);
+		margin-bottom: 0.6rem;
+	}
+
+	.detail p {
+		color: var(--text-soft);
+		font-size: 0.98rem;
+	}
+
+	.facts {
+		grid-column: 1 / -1;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.facts li {
+		padding: 0.25rem 0.7rem;
+		border: 1px solid var(--line-strong);
+		border-radius: 999px;
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		color: var(--text-soft);
+	}
+
+	@media (max-width: 760px) {
+		.detail {
+			grid-template-columns: 1fr;
+			min-height: 0;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.wire i {
+			animation: none;
+			opacity: 0;
+		}
+	}
+</style>

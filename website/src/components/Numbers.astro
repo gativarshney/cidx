@@ -1,0 +1,271 @@
+---
+import demo from '../data/demo.json';
+import graph from '../data/graph.json';
+import { django, tests } from '../data/verification';
+import { REPO_URL } from '../util/site';
+import { formatNumber } from '../util/tint';
+
+const scaleMax = 150;
+const indexSeconds = demo.cli.index.output.match(/in ([\d.]+)s/)?.[1];
+const tiles = [
+	{
+		count: django.coldIndexSeconds,
+		decimals: 1,
+		unit: ' s',
+		label: 'to index Django',
+		detail: `${formatNumber(django.files)} files, ${formatNumber(django.symbols)} symbols, ${formatNumber(django.refs)} references. Warm file cache; 68 to 97 s on a cold one.`,
+	},
+	{
+		count: Number(indexSeconds),
+		decimals: 2,
+		unit: ' s',
+		label: 'to index click',
+		detail: `${graph.counts.files} files, ${formatNumber(graph.counts.symbols)} symbols, ${formatNumber(graph.counts.refs)} references.`,
+	},
+	{
+		count: demo.live.medianMs,
+		decimals: 0,
+		unit: ' ms',
+		label: 'save to queryable on click',
+		detail: `Median of ${demo.live.samplesMs.length} saves through the real watcher. On Django: ${django.saveIsolatedSeconds} s isolated, ${django.saveBackToBackSeconds} s back to back.`,
+	},
+	{
+		count: tests.count,
+		decimals: 0,
+		unit: '',
+		label: 'tests, green on 3 OSes',
+		detail: 'Including a property-based suite that asserts the incremental index equals a cold rebuild.',
+	},
+];
+---
+
+<div class="numbers">
+	<ul class="tiles">
+		{tiles.map((tile, index) => (
+			<li data-reveal data-glow style={`transition-delay: ${index * 70}ms`}>
+				<strong><span data-count={tile.count} data-decimals={tile.decimals}>{tile.count.toFixed(tile.decimals)}</span>{tile.unit}</strong>
+				<span>{tile.label}</span>
+				<p>{tile.detail}</p>
+			</li>
+		))}
+	</ul>
+
+	<figure class="chart" data-reveal>
+		<figcaption>
+			<h3>Query latency on Django, p95</h3>
+			<p>60 samples per query, library path. The target is {django.targetQueryMs} ms.</p>
+		</figcaption>
+		<div class="plot" role="img" aria-label={`Bar chart of p95 query latency on Django. ${django.queries.map((query) => `${query.name} ${query.p95} milliseconds`).join(', ')}. Target ${django.targetQueryMs} milliseconds.`}>
+			<span class="overlay" aria-hidden="true">
+				<span class="target" style={`left: ${(django.targetQueryMs / scaleMax) * 100}%`}><em>{django.targetQueryMs} ms target</em></span>
+			</span>
+			{django.queries.map((query) => (
+				<div class="row">
+					<span class="name">{query.name}</span>
+					<span class="track">
+						<i class={query.p95 > django.targetQueryMs ? 'over' : 'under'} style={`width: ${Math.max((query.p95 / scaleMax) * 100, 0.6)}%`}></i>
+					</span>
+					<span class="value">{query.p95} ms</span>
+				</div>
+			))}
+		</div>
+		<p class="note">
+			Exact lookups meet the target at this size. Ranked search and the repository map do not: both
+			scan, and that is published as measured.
+		</p>
+	</figure>
+
+	<p class="source">
+		Django numbers: {django.repository}@{django.commit.slice(0, 7)}, measured {django.measured} on a
+		{django.machine}, recorded with the commands to reproduce them in
+		<a href={`${REPO_URL}/blob/main/${django.source}`}>{django.source}</a>. click numbers: captured
+		{demo.provenance.captured} with {demo.provenance.cidx} on {demo.provenance.machine.cpu}.
+	</p>
+</div>
+
+<style>
+	.tiles {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 1rem;
+	}
+
+	.tiles li {
+		padding: 1.25rem;
+		border: 1px solid var(--line);
+		border-radius: 16px;
+		background: var(--bg-raised);
+	}
+
+	.tiles strong {
+		display: block;
+		font-family: var(--font-display);
+		font-weight: 400;
+		font-size: clamp(2.2rem, 4vw, 3rem);
+		line-height: 1;
+		letter-spacing: -0.01em;
+	}
+
+	.tiles span {
+		display: block;
+		margin-top: 0.5rem;
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--accent);
+	}
+
+	.tiles p {
+		margin-top: 0.6rem;
+		font-size: 0.85rem;
+		color: var(--muted);
+	}
+
+	.chart {
+		margin-top: 1rem;
+		padding: 1.5rem;
+		border: 1px solid var(--line);
+		border-radius: 16px;
+		background: var(--bg-raised);
+	}
+
+	figcaption h3 {
+		font-size: 1rem;
+		font-weight: 600;
+	}
+
+	figcaption p,
+	.note {
+		font-size: 0.85rem;
+		color: var(--muted);
+	}
+
+	.plot {
+		position: relative;
+		display: grid;
+		gap: 0.7rem;
+		margin-top: 2.25rem;
+		--name: 9.5rem;
+		--value: 4.5rem;
+	}
+
+	.row {
+		display: grid;
+		grid-template-columns: var(--name) 1fr var(--value);
+		align-items: center;
+		gap: 0.75rem;
+		font-family: var(--font-mono);
+		font-size: 0.78rem;
+	}
+
+	.name {
+		color: var(--text-soft);
+	}
+
+	.value {
+		text-align: right;
+		color: var(--text);
+	}
+
+	.track {
+		height: 0.9rem;
+		border-radius: 4px;
+		background: var(--bg-sunken);
+		overflow: hidden;
+	}
+
+	.track i {
+		display: block;
+		height: 100%;
+		border-radius: 4px;
+		transform-origin: left;
+	}
+
+	.under {
+		background: var(--exact);
+	}
+
+	.over {
+		background: var(--name-only);
+	}
+
+	:global(.js) .chart .track i {
+		transform: scaleX(0);
+		transition: transform 1s cubic-bezier(0.2, 0.7, 0.2, 1) 0.25s;
+	}
+
+	:global(.js) .chart:global(.in) .track i {
+		transform: none;
+	}
+
+	/* the overlay covers the track column only, so the target sits on the bars' scale */
+	.overlay {
+		position: absolute;
+		top: -1.4rem;
+		bottom: 0;
+		left: calc(var(--name) + 0.75rem);
+		right: calc(var(--value) + 0.75rem);
+		pointer-events: none;
+	}
+
+	.target {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		border-left: 1px dashed var(--muted);
+	}
+
+	.target em {
+		position: absolute;
+		top: 0;
+		left: 0.4rem;
+		font-family: var(--font-mono);
+		font-size: 0.66rem;
+		font-style: normal;
+		color: var(--muted);
+		white-space: nowrap;
+	}
+
+	.note {
+		margin-top: 1.25rem;
+	}
+
+	.source {
+		margin-top: 1rem;
+		font-family: var(--font-mono);
+		font-size: 0.68rem;
+		color: var(--muted);
+	}
+
+	.source a {
+		color: var(--text-soft);
+		border-bottom: 1px solid var(--line-strong);
+	}
+
+	@media (max-width: 960px) {
+		.tiles {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (max-width: 560px) {
+		.tiles {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.plot {
+			--name: 7.4rem;
+			--value: 3.9rem;
+		}
+		.row {
+			font-size: 0.68rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		:global(.js) .chart .track i {
+			transform: none;
+			transition: none;
+		}
+	}
+</style>

@@ -1,0 +1,331 @@
+---
+import demo from '../data/demo.json';
+import { tint } from '../util/tint';
+
+const { budget, provenance } = demo;
+const DEFAULT = 700;
+const cost = (line: string) => Math.max(1, Math.floor(line.length / 4));
+---
+
+<div class="budget" data-budget data-reveal data-total={budget.total}>
+	<div class="control">
+		<p class="eyebrow">Try it</p>
+		<h3>Drag the token budget.</h3>
+		<p>
+			Every tool takes <code>max_tokens</code>. cidx keeps whole result rows until the next one would
+			not fit, then marks the answer as truncated and reports the match count. This is the real answer to
+			<code>find_references("{budget.name}")</code> on {provenance.repository}, trimmed in your browser
+			by the same rule.
+		</p>
+
+		<label class="slider">
+			<span class="label">max_tokens</span>
+			<output data-budget-value>{DEFAULT}</output>
+			<input type="range" min="60" max="1600" step="10" value={DEFAULT} data-budget-range aria-label="max_tokens" />
+		</label>
+		<div class="presets">
+			{[150, 400, 700, 1500].map((preset) => (
+				<button type="button" data-budget-preset={preset}>{preset}</button>
+			))}
+		</div>
+
+		<dl class="stats">
+			<div>
+				<dt>rows returned</dt>
+				<dd><span data-budget-rows></span> of {budget.total}</dd>
+			</div>
+			<div>
+				<dt>tokens used</dt>
+				<dd>~<span data-budget-spent></span></dd>
+			</div>
+		</dl>
+		<p class="verified">
+			Checked against the real server: the capture script fails unless this rule reproduces cidx's
+			own output at max_tokens {budget.verifiedAt.join(' and ')}. find_references reads at most 200
+			matches, so its total_matches tops out at 200.
+		</p>
+	</div>
+
+	<div class="response" aria-live="off">
+		<div class="response-bar">
+			<span>find_references("{budget.name}", max_tokens=<b data-budget-value>{DEFAULT}</b>)</span>
+		</div>
+		<ol class="rows" data-budget-list>
+			{budget.lines.map((line) => <li data-cost={cost(line)} set:html={tint(line)} />)}
+		</ol>
+		<p class="trailer" data-budget-trailer><span class="t-meta">truncated: true, total_matches: {budget.total}</span></p>
+		<p class="trailer"><span class="t-meta">index_age_ms: …</span></p>
+	</div>
+</div>
+
+<script>
+	document.querySelectorAll<HTMLElement>('[data-budget]').forEach((root) => {
+		const range = root.querySelector<HTMLInputElement>('[data-budget-range]')!;
+		const rows = [...root.querySelectorAll<HTMLElement>('[data-budget-list] li')];
+		const costs = rows.map((row) => Number(row.dataset.cost));
+		const trailer = root.querySelector<HTMLElement>('[data-budget-trailer]')!;
+		const list = root.querySelector<HTMLElement>('[data-budget-list]')!;
+		let interacted = false;
+		const total = Number(root.dataset.total);
+
+		// cidx.ranking.budget.shape: keep rows while they fit; the first row always stays
+		function update() {
+			const maxTokens = Number(range.value);
+			let kept = 0;
+			let spent = 0;
+			for (const cost of costs) {
+				if (kept && spent + cost > maxTokens) break;
+				kept += 1;
+				spent += cost;
+			}
+			rows.forEach((row, index) => row.classList.toggle('cut', index >= kept));
+			// keep the cut line in view while dragging
+			const last = rows[kept - 1];
+			if (interacted && last) list.scrollTo({ top: last.offsetTop - list.clientHeight * 0.62 });
+			trailer.hidden = kept >= total;
+			root.querySelectorAll('[data-budget-value]').forEach((element) => (element.textContent = String(maxTokens)));
+			root.querySelector('[data-budget-rows]')!.textContent = String(kept);
+			root.querySelector('[data-budget-spent]')!.textContent = String(spent);
+			range.style.setProperty('--fill', `${((maxTokens - Number(range.min)) / (Number(range.max) - Number(range.min))) * 100}%`);
+			root.querySelectorAll<HTMLElement>('[data-budget-preset]').forEach((preset) => {
+				preset.classList.toggle('on', Number(preset.dataset.budgetPreset) === maxTokens);
+			});
+		}
+
+		range.addEventListener('input', () => {
+			interacted = true;
+			update();
+		});
+		root.querySelectorAll<HTMLElement>('[data-budget-preset]').forEach((preset) => {
+			preset.addEventListener('click', () => {
+				range.value = preset.dataset.budgetPreset!;
+				interacted = true;
+				update();
+			});
+		});
+		update();
+	});
+</script>
+
+<style>
+	.budget {
+		display: grid;
+		grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+		gap: 2rem;
+		margin-top: 1rem;
+		padding: 1.75rem 1.5rem;
+		border: 1px solid var(--line-strong);
+		border-radius: 18px;
+		background: var(--bg-raised);
+	}
+
+	h3 {
+		margin-top: 0.8rem;
+		font-family: var(--font-display);
+		font-weight: 400;
+		font-size: clamp(1.6rem, 3vw, 2.1rem);
+		line-height: 1.1;
+	}
+
+	.control > p:not(.eyebrow) {
+		margin-top: 0.75rem;
+		font-size: 0.94rem;
+		color: var(--text-soft);
+	}
+
+	code {
+		font-size: 0.86em;
+		padding: 0.1em 0.35em;
+		border-radius: 5px;
+		background: var(--bg-sunken);
+		border: 1px solid var(--line);
+	}
+
+	.slider {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		align-items: baseline;
+		gap: 0.6rem 1rem;
+		margin-top: 1.5rem;
+		font-family: var(--font-mono);
+	}
+
+	.label {
+		font-size: 0.8rem;
+		color: var(--accent);
+	}
+
+	output {
+		font-size: 1.6rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+	}
+
+	input[type='range'] {
+		grid-column: 1 / -1;
+		appearance: none;
+		width: 100%;
+		height: 1.5rem;
+		background: none;
+		cursor: ew-resize;
+	}
+
+	input[type='range']::-webkit-slider-runnable-track {
+		height: 6px;
+		border-radius: 999px;
+		background: linear-gradient(to right, var(--accent) var(--fill, 40%), var(--line-strong) var(--fill, 40%));
+	}
+
+	input[type='range']::-moz-range-track {
+		height: 6px;
+		border-radius: 999px;
+		background: linear-gradient(to right, var(--accent) var(--fill, 40%), var(--line-strong) var(--fill, 40%));
+	}
+
+	input[type='range']::-webkit-slider-thumb {
+		appearance: none;
+		width: 1.25rem;
+		height: 1.25rem;
+		margin-top: -7px;
+		border: 3px solid var(--accent);
+		border-radius: 50%;
+		background: var(--bg);
+		box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 22%, transparent);
+		transition: transform 0.15s;
+	}
+
+	input[type='range']::-moz-range-thumb {
+		width: 0.9rem;
+		height: 0.9rem;
+		border: 3px solid var(--accent);
+		border-radius: 50%;
+		background: var(--bg);
+	}
+
+	input[type='range']:active::-webkit-slider-thumb {
+		transform: scale(1.15);
+	}
+
+	.presets {
+		display: flex;
+		gap: 0.4rem;
+		margin-top: 0.5rem;
+	}
+
+	.presets button {
+		padding: 0.2rem 0.7rem;
+		border: 1px solid var(--line-strong);
+		border-radius: 999px;
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		color: var(--text-soft);
+		transition:
+			border-color 0.15s,
+			color 0.15s;
+	}
+
+	.presets button:hover,
+	.presets button:global(.on) {
+		border-color: var(--accent);
+		color: var(--accent);
+	}
+
+	.stats {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+		margin: 1.5rem 0 0;
+	}
+
+	dt {
+		font-family: var(--font-mono);
+		font-size: 0.68rem;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--muted);
+	}
+
+	dd {
+		margin: 0.2rem 0 0;
+		font-family: var(--font-mono);
+		font-size: 1.15rem;
+		font-variant-numeric: tabular-nums;
+	}
+
+	.verified {
+		font-size: 0.8rem !important;
+		color: var(--muted) !important;
+	}
+
+	.response {
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		border: 1px solid var(--line-strong);
+		border-radius: 14px;
+		background: var(--bg-sunken);
+		font-family: var(--font-mono);
+		font-size: 0.72rem;
+		line-height: 1.6;
+		overflow: hidden;
+	}
+
+	.response-bar {
+		padding: 0.6rem 1rem;
+		border-bottom: 1px solid var(--line);
+		color: var(--accent);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.response-bar b {
+		color: var(--text);
+	}
+
+	.rows {
+		position: relative;
+		flex: none;
+		height: 19rem;
+		overflow: auto;
+		padding: 0.75rem 1rem 0.25rem;
+		color: var(--text-soft);
+		scrollbar-width: thin;
+		scrollbar-color: var(--line-strong) transparent;
+	}
+
+	.rows li {
+		white-space: pre;
+		transition:
+			opacity 0.25s,
+			filter 0.25s;
+	}
+
+	.rows li:global(.cut) {
+		opacity: 0.16;
+		filter: blur(0.6px);
+		text-decoration: line-through;
+		text-decoration-color: color-mix(in srgb, var(--name-only) 60%, transparent);
+	}
+
+	.trailer {
+		padding: 0 1rem;
+	}
+
+	.trailer[hidden] {
+		display: none;
+	}
+
+	.trailer:last-child {
+		padding-bottom: 0.75rem;
+	}
+
+	@media (max-width: 900px) {
+		.budget {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.rows {
+			height: 14rem;
+		}
+	}
+</style>

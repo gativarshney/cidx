@@ -1,0 +1,536 @@
+---
+import CopyButton from './CopyButton.astro';
+import demo from '../data/demo.json';
+import { href } from '../util/site';
+
+const config = (command: string, args: string[]) =>
+	JSON.stringify({ mcpServers: { cidx: { command, args } } }, null, 2);
+const variants = [
+	{
+		id: 'uvx',
+		label: 'uvx',
+		note: 'Nothing to install first. uv downloads cidx on the first start.',
+		code: config('uvx', ['cidx', 'serve', '--repo', '/absolute/path/to/repo']),
+	},
+	{
+		id: 'path',
+		label: 'pip install',
+		note: 'After pip install cidx, with cidx on the PATH your agent uses.',
+		code: config('cidx', ['serve', '--repo', '/absolute/path/to/repo']),
+	},
+];
+const toolNames = demo.mcp.tools.map((tool) => tool.name);
+// one real exchange per tool, replayed in the wire diagram
+const exchanges = [
+	{ call: 'find_definition("Context.invoke")', reply: demo.mcp.definition.text.split('\n')[0] },
+	{ call: 'find_references("echo")', reply: demo.mcp.references.text.split('\n')[0] },
+	{ call: 'search_symbols("pass_cont")', reply: demo.mcp.search.text.split('\n')[0] },
+	{ call: 'outline_file("src/click/globals.py")', reply: demo.mcp.outlineSmall.text.split('\n')[4] },
+	{ call: 'repo_map()', reply: demo.mcp.repoMap.text.split('\n')[0] },
+];
+---
+
+<div class="connect">
+	<div class="config" data-reveal data-connect>
+		<div class="bar">
+			<div class="tabs" role="tablist" aria-label="How cidx is started">
+				{variants.map((variant, index) => (
+					<button type="button" role="tab" id={`connect-tab-${variant.id}`} aria-controls={`connect-${variant.id}`} aria-selected={index === 0 ? 'true' : 'false'} tabindex={index === 0 ? 0 : -1}>
+						{variant.label}
+					</button>
+				))}
+			</div>
+			<span class="file">mcp config</span>
+		</div>
+		{variants.map((variant, index) => (
+			<div class="panel" role="tabpanel" id={`connect-${variant.id}`} aria-labelledby={`connect-tab-${variant.id}`} hidden={index !== 0}>
+				<div class="code">
+					<pre><code>{variant.code}</code></pre>
+					<CopyButton text={variant.code} label="Copy MCP configuration" />
+				</div>
+				<p class="note">{variant.note}</p>
+			</div>
+		))}
+	</div>
+
+	<ol class="steps">
+		<li data-reveal>
+			<span class="n">1</span>
+			<div>
+				<h3>Paste the block</h3>
+				<p>
+					Into your MCP client's server config. Replace the path with your repository's absolute path.
+					On Windows, write it with forward slashes: <code>C:/code/myrepo</code>.
+				</p>
+			</div>
+		</li>
+		<li data-reveal style="transition-delay: 80ms">
+			<span class="n">2</span>
+			<div>
+				<h3>Restart the agent</h3>
+				<p>
+					It starts <code>cidx serve</code> as a child process. If there is no index yet, cidx builds
+					one, then keeps it fresh while the agent runs.
+				</p>
+			</div>
+		</li>
+		<li data-reveal style="transition-delay: 160ms">
+			<span class="n">3</span>
+			<div>
+				<h3>Ask about your code</h3>
+				<p>The agent now has five read-only tools it can call instead of grepping and reading whole files.</p>
+				<ul class="chips">
+					{toolNames.map((name) => <li>{name}</li>)}
+				</ul>
+			</div>
+		</li>
+	</ol>
+</div>
+
+<div class="wire" data-reveal data-wire aria-label="How a tool call travels: the agent calls cidx serve over stdio, cidx reads the index and replies with a location.">
+	<div class="end">
+		<span class="role">your agent</span>
+		<span class="what">MCP client</span>
+	</div>
+	<div class="link">
+		<span class="packet out" aria-hidden="true"></span>
+		<span class="packet back" aria-hidden="true"></span>
+		<p class="msg call" data-wire-call>{exchanges[0].call}</p>
+		<p class="msg reply" data-wire-reply>{exchanges[0].reply}</p>
+	</div>
+	<div class="end mid">
+		<span class="role">cidx serve</span>
+		<span class="what">stdio, read-only</span>
+	</div>
+	<div class="link short">
+		<span class="packet out" aria-hidden="true"></span>
+		<span class="packet back" aria-hidden="true"></span>
+	</div>
+	<div class="end">
+		<span class="role">index.db</span>
+		<span class="what">SQLite, outside your repo</span>
+	</div>
+</div>
+<script type="application/json" id="wire-exchanges" set:html={JSON.stringify(exchanges)} />
+
+<p class="after">
+	Client-specific setup, a smoke test, and troubleshooting are in the
+	<a href={href('/docs/quickstart/')}>docs</a>.
+</p>
+
+<script>
+	// config tabs
+	document.querySelectorAll<HTMLElement>('[data-connect]').forEach((connect) => {
+		const tabs = [...connect.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+		const select = (tab: HTMLButtonElement) => {
+			for (const other of tabs) {
+				const active = other === tab;
+				other.setAttribute('aria-selected', String(active));
+				other.tabIndex = active ? 0 : -1;
+				document.getElementById(other.getAttribute('aria-controls')!)!.hidden = !active;
+			}
+		};
+		tabs.forEach((tab, index) => {
+			tab.addEventListener('click', () => select(tab));
+			tab.addEventListener('keydown', (event) => {
+				if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+				const next = tabs[(index + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+				select(next);
+				next.focus();
+			});
+		});
+	});
+
+	// the wire diagram cycles through one real exchange per tool
+	const wire = document.querySelector<HTMLElement>('[data-wire]');
+	const source = document.getElementById('wire-exchanges');
+	if (wire && source && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		const exchanges: { call: string; reply: string }[] = JSON.parse(source.textContent ?? '[]');
+		const call = wire.querySelector<HTMLElement>('[data-wire-call]')!;
+		const reply = wire.querySelector<HTMLElement>('[data-wire-reply]')!;
+		let turn = 0;
+		let timer: number | undefined;
+		const cycle = () => {
+			turn = (turn + 1) % exchanges.length;
+			wire.classList.remove('run');
+			void wire.offsetWidth; // restart the CSS animation
+			call.textContent = exchanges[turn].call;
+			reply.textContent = exchanges[turn].reply;
+			wire.classList.add('run');
+		};
+		new IntersectionObserver(([entry]) => {
+			clearInterval(timer);
+			if (entry.isIntersecting) {
+				wire.classList.add('run');
+				timer = window.setInterval(cycle, 3600);
+			}
+		}).observe(wire);
+	}
+</script>
+
+<style>
+	.connect {
+		display: grid;
+		grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+		gap: 2.5rem;
+		align-items: center;
+	}
+
+	.config {
+		border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+		border-radius: 16px;
+		background: var(--bg-sunken);
+		box-shadow:
+			0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent),
+			0 30px 90px color-mix(in srgb, var(--accent) 16%, transparent),
+			var(--shadow);
+		overflow: hidden;
+	}
+
+	.bar {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0 1rem 0 0.5rem;
+		border-bottom: 1px solid var(--line);
+		background: var(--bg-raised);
+	}
+
+	.tabs {
+		display: flex;
+	}
+
+	.tabs button {
+		padding: 0.8rem 0.9rem;
+		font-family: var(--font-mono);
+		font-size: 0.78rem;
+		color: var(--muted);
+		border-bottom: 2px solid transparent;
+		margin-bottom: -1px;
+	}
+
+	.tabs button[aria-selected='true'] {
+		color: var(--text);
+		border-bottom-color: var(--accent);
+	}
+
+	.file {
+		font-family: var(--font-mono);
+		font-size: 0.7rem;
+		color: var(--muted);
+	}
+
+	.panel[hidden] {
+		display: none;
+	}
+
+	.code {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.5rem;
+		padding: 1.1rem 0.75rem 1.1rem 1.25rem;
+	}
+
+	pre {
+		flex: 1;
+		min-width: 0;
+		overflow-x: auto;
+		font-size: 0.86rem;
+		line-height: 1.75;
+		color: var(--text);
+	}
+
+	.note {
+		padding: 0.75rem 1.25rem;
+		border-top: 1px solid var(--line);
+		font-size: 0.85rem;
+		color: var(--muted);
+	}
+
+	.steps {
+		display: grid;
+		gap: 1.4rem;
+	}
+
+	.steps > li {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 1rem;
+	}
+
+	.n {
+		width: 2rem;
+		height: 2rem;
+		display: grid;
+		place-items: center;
+		border: 1px solid var(--line-strong);
+		border-radius: 50%;
+		font-family: var(--font-mono);
+		font-size: 0.8rem;
+		color: var(--accent);
+	}
+
+	h3 {
+		font-size: 1.05rem;
+		font-weight: 600;
+		line-height: 2rem;
+	}
+
+	.steps p {
+		color: var(--text-soft);
+		font-size: 0.95rem;
+	}
+
+	.steps code {
+		font-size: 0.85em;
+		padding: 0.1em 0.35em;
+		border-radius: 5px;
+		background: var(--bg-raised);
+		border: 1px solid var(--line);
+	}
+
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+		margin-top: 0.7rem;
+	}
+
+	.chips li {
+		padding: 0.2rem 0.6rem;
+		border: 1px solid var(--line-strong);
+		border-radius: 999px;
+		font-family: var(--font-mono);
+		font-size: 0.7rem;
+		color: var(--text-soft);
+	}
+
+	/* --- wire diagram -------------------------------------------------- */
+
+	.wire {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto minmax(3rem, 0.3fr) auto;
+		align-items: center;
+		margin-top: 2.5rem;
+		padding: 1.4rem 1.5rem;
+		border: 1px solid var(--line);
+		border-radius: 16px;
+		background: var(--bg-raised);
+	}
+
+	.end {
+		display: grid;
+		gap: 0.1rem;
+		padding: 0.65rem 0.9rem;
+		border: 1px solid var(--line-strong);
+		border-radius: 12px;
+		background: var(--bg-sunken);
+		font-family: var(--font-mono);
+		white-space: nowrap;
+	}
+
+	.end.mid {
+		border-color: var(--accent);
+	}
+
+	.role {
+		font-size: 0.86rem;
+		font-weight: 600;
+	}
+
+	.what {
+		font-size: 0.66rem;
+		color: var(--muted);
+	}
+
+	.link {
+		position: relative;
+		height: 3.6rem;
+		margin-inline: 0.5rem;
+		min-width: 0;
+	}
+
+	.link::before,
+	.link::after {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		height: 1px;
+		background: var(--line-strong);
+	}
+
+	.link::before {
+		top: 38%;
+	}
+
+	.link::after {
+		top: 62%;
+	}
+
+	.packet {
+		position: absolute;
+		width: 7px;
+		height: 7px;
+		margin-top: -3px;
+		border-radius: 50%;
+		opacity: 0;
+	}
+
+	.packet.out {
+		top: 38%;
+		background: var(--accent);
+		box-shadow: 0 0 10px var(--accent);
+	}
+
+	.packet.back {
+		top: 62%;
+		background: var(--exact);
+		box-shadow: 0 0 10px var(--exact);
+	}
+
+	.wire:global(.run) .packet.out {
+		animation: out 1.1s ease-in-out both;
+	}
+
+	.wire:global(.run) .short .packet.out {
+		animation-delay: 0.9s;
+		animation-duration: 0.5s;
+	}
+
+	.wire:global(.run) .short .packet.back {
+		animation: back 0.5s ease-in-out 1.4s both;
+	}
+
+	.wire:global(.run) .packet.back {
+		animation: back 1.1s ease-in-out 1.9s both;
+	}
+
+	@keyframes out {
+		0% {
+			left: 0;
+			opacity: 0;
+		}
+		15%,
+		85% {
+			opacity: 1;
+		}
+		100% {
+			left: calc(100% - 7px);
+			opacity: 0;
+		}
+	}
+
+	@keyframes back {
+		0% {
+			left: calc(100% - 7px);
+			opacity: 0;
+		}
+		15%,
+		85% {
+			opacity: 1;
+		}
+		100% {
+			left: 0;
+			opacity: 0;
+		}
+	}
+
+	.msg {
+		position: absolute;
+		left: 0;
+		right: 0;
+		font-family: var(--font-mono);
+		font-size: 0.7rem;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		text-align: center;
+	}
+
+	.msg.call {
+		top: -0.35rem;
+		color: var(--accent);
+	}
+
+	.msg.reply {
+		bottom: -0.35rem;
+		color: var(--exact);
+	}
+
+	.wire:global(.run) .msg.call {
+		animation: fade 3.6s both;
+	}
+
+	.wire:global(.run) .msg.reply {
+		animation: fade-late 3.6s both;
+	}
+
+	@keyframes fade {
+		0% {
+			opacity: 0;
+			transform: translateY(4px);
+		}
+		8%,
+		100% {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	@keyframes fade-late {
+		0%,
+		52% {
+			opacity: 0;
+			transform: translateY(-4px);
+		}
+		62%,
+		100% {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	.after {
+		margin-top: 1rem;
+		font-size: 0.88rem;
+		color: var(--muted);
+	}
+
+	.after a {
+		color: var(--text);
+		border-bottom: 1px solid var(--line-strong);
+	}
+
+	@media (max-width: 900px) {
+		.connect {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		pre {
+			font-size: 0.76rem;
+		}
+		.wire {
+			grid-template-columns: minmax(0, 1fr);
+			gap: 0.25rem;
+			justify-items: center;
+		}
+		.link {
+			width: 100%;
+			height: 4.6rem;
+		}
+		.link.short {
+			height: 1.5rem;
+		}
+		.link::before,
+		.link::after,
+		.packet {
+			display: none;
+		}
+		.msg.call {
+			top: 0.6rem;
+		}
+		.msg.reply {
+			bottom: 0.6rem;
+		}
+	}
+</style>
