@@ -6,7 +6,7 @@ import type { GraphController } from './graph';
 import { nodes, search } from './index-data';
 
 const AUTO_QUERIES = ['echo', 'Context', 'pass_context', 'Group', 'option', 'ParamType'];
-const RESULT_LIMIT = 4;
+const RESULT_LIMIT = 3;
 
 const escapeHtml = (text: string) =>
 	text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -24,11 +24,10 @@ export async function mountExplorer(hero: HTMLElement): Promise<void> {
 	const root = hero.querySelector<HTMLElement>('[data-explorer]')!;
 	const input = root.querySelector<HTMLInputElement>('[data-query]')!;
 	const list = root.querySelector<HTMLElement>('[data-results]')!;
-	const detail = root.querySelector<HTMLElement>('[data-detail]')!;
 	const status = root.querySelector<HTMLElement>('[data-status]')!;
 	const graphHost = hero.querySelector<HTMLElement>('[data-graph]');
 	const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-	const totals = { files: Number(root.dataset.files), symbols: Number(root.dataset.symbols) };
+	const totals = { files: Number(root.dataset.files) };
 	const readyStatus = status.textContent ?? '';
 
 	let graph: GraphController | null = null;
@@ -37,32 +36,11 @@ export async function mountExplorer(hero: HTMLElement): Promise<void> {
 	let auto = !reduceMotion;
 	let typing = 0; // increments to cancel an auto-typed query in flight
 
-	function showDetail(index: number) {
-		if (index === -1) {
-			detail.innerHTML = '';
-			return;
-		}
-		const node = nodes[index];
-		const rows = node.sample
-			.map(
-				(ref) =>
-					`<li><span class="t-loc">${escapeHtml(ref.path)}:${ref.line}</span> <span class="t-${ref.confidence}">[${ref.confidence}]</span></li>`,
-			)
-			.join('');
-		const more = node.refs - node.sample.length;
-		detail.innerHTML =
-			(node.signature ? `<p class="signature">${escapeHtml(node.signature)}</p>` : '') +
-			`<p class="call">references resolved to this definition<span>${node.refs}</span></p>` +
-			(rows ? `<ul>${rows}</ul>` : '<p class="none">no resolved references in the index</p>') +
-			(more > 0 ? `<p class="more">+ ${more} more</p>` : '');
-	}
-
 	function setActive(index: number) {
 		active = index;
 		list.querySelectorAll<HTMLElement>('[data-node]').forEach((item) => {
 			item.setAttribute('aria-selected', String(Number(item.dataset.node) === index));
 		});
-		showDetail(index);
 		graph?.select(index);
 	}
 
@@ -132,8 +110,7 @@ export async function mountExplorer(hero: HTMLElement): Promise<void> {
 						}
 						root.classList.add('building');
 						const files = Math.round(progress * totals.files);
-						const symbols = Math.round(progress * totals.symbols);
-						status.textContent = `indexing ${files} / ${totals.files} files · ${symbols.toLocaleString('en-US')} symbols`;
+						status.textContent = `indexing ${files} / ${totals.files} files`;
 					});
 				});
 			}

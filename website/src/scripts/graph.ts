@@ -20,7 +20,7 @@ import {
 } from 'three';
 import { edges, nodes } from './index-data';
 
-const LABELS = 10;
+const LABELS = 14;
 const PULSES = 64;
 const DUST = 420;
 const BUILD_SECONDS = 2.6;
@@ -44,13 +44,13 @@ const nodeVertex = /* glsl */ `
 		float born = step(birth, uBuild);
 		float pop = 1.0 + 1.6 * exp(-(uBuild - birth) * 26.0);
 		float breathe = 1.0 + 0.12 * sin(uTime * 1.6 + phase);
-		float emphasis = mix(1.0, mix(0.8, 1.8, lit), uDim);
+		float emphasis = mix(1.0, mix(0.9, 1.7, lit), uDim);
 		gl_PointSize = size * mix(1.0, 0.55, uSolid) * born * pop * breathe * emphasis
 			* uPixelRatio * (uDistance * 0.8 / -mv.z);
 		gl_Position = projectionMatrix * mv;
 		vColor = color;
 		float depth = smoothstep(uDistance + 110.0, uDistance - 140.0, -mv.z);
-		vAlpha = born * mix(0.28, 1.0, depth) * mix(1.0, mix(0.34, 1.0, lit), uDim);
+		vAlpha = born * mix(0.4, 1.0, depth) * mix(1.0, mix(0.62, 1.0, lit), uDim);
 	}
 `;
 
@@ -114,7 +114,7 @@ export function mountGraph(host: HTMLElement): GraphController {
 	// --- nodes -----------------------------------------------------------
 
 	const radius = Math.max(...nodes.map((node) => Math.hypot(node.p[0], node.p[1], node.p[2])));
-	const scale = 105 / radius;
+	const scale = 132 / radius;
 	const count = nodes.length;
 	const positions = new Float32Array(count * 3);
 	const sizes = new Float32Array(count);
@@ -125,7 +125,7 @@ export function mountGraph(host: HTMLElement): GraphController {
 	const fileCount = Math.max(...nodes.map((node) => node.file)) + 1;
 	nodes.forEach((node, index) => {
 		positions.set([node.p[0] * scale, node.p[1] * scale, node.p[2] * scale], index * 3);
-		sizes[index] = 7 + Math.log2(1 + node.inbound) * 3.4;
+		sizes[index] = 9.5 + Math.log2(1 + node.inbound) * 4.2;
 		phases[index] = (index * 2.399) % (Math.PI * 2);
 		// files are "indexed" one after another; symbols in a file arrive together
 		births[index] = (node.file / fileCount) * 0.82 + ((index * 0.618) % 1) * 0.08;
@@ -291,8 +291,19 @@ export function mountGraph(host: HTMLElement): GraphController {
 		labelled = indices.slice(0, LABELS);
 		labels.forEach((label, slot) => {
 			const index = labelled[slot];
-			label.textContent = index === undefined ? '' : nodes[index].name;
-			label.classList.toggle('strong', index !== undefined && index === selected);
+			const strong = index !== undefined && index === selected;
+			label.classList.toggle('strong', strong);
+			if (index === undefined) {
+				label.textContent = '';
+			} else if (strong) {
+				const node = nodes[index];
+				label.textContent = node.name;
+				const detail = document.createElement('small');
+				detail.textContent = `${node.kind} · ${node.path}:${node.line} · ${node.refs} refs`;
+				label.append(detail);
+			} else {
+				label.textContent = nodes[index].name;
+			}
 		});
 	}
 
@@ -366,7 +377,7 @@ export function mountGraph(host: HTMLElement): GraphController {
 
 	// --- theme -----------------------------------------------------------
 
-	let edgeBaseOpacity = 0.26;
+	let edgeBaseOpacity = 0.44;
 	function applyTheme() {
 		const styles = getComputedStyle(document.documentElement);
 		const read = (name: string) => new Color(styles.getPropertyValue(name).trim());
@@ -401,7 +412,7 @@ export function mountGraph(host: HTMLElement): GraphController {
 			material.needsUpdate = true;
 		}
 		uniforms.uSolid.value = light ? 1 : 0;
-		edgeBaseOpacity = light ? 0.3 : 0.26;
+		edgeBaseOpacity = light ? 0.4 : 0.44;
 		refreshFocus();
 	}
 	const themeObserver = new MutationObserver(applyTheme);
@@ -425,9 +436,9 @@ export function mountGraph(host: HTMLElement): GraphController {
 		if (width >= 960) {
 			// the graph sits in the right half, beside the headline
 			camera.position.z = 330;
-			world.position.set(Math.min(95, (camera.aspect - 1) * 95), 22, 0);
-			restYaw = -0.2; // up and to the left of centre, clear of the console
-			restPitch = -0.55;
+			world.position.set(Math.min(72, (camera.aspect - 1) * 95), 10, 0);
+			restYaw = -0.3; // left of centre, clear of the console
+			restPitch = -0.2;
 		} else {
 			// narrow screens: fit the graph to the width and park it behind the top of the hero
 			camera.position.z = 250 / (2 * tangent * camera.aspect);
@@ -544,7 +555,7 @@ export function mountGraph(host: HTMLElement): GraphController {
 		}
 		const edgesIn = reduceMotion ? 1 : Math.max(0, Math.min((elapsed - BUILD_SECONDS * 0.45) / 1.6, 1));
 		uniforms.uDim.value += (dimTarget - uniforms.uDim.value) * Math.min(delta * 7, 1);
-		edgeMaterial.opacity = edgeBaseOpacity * edgesIn * (1 - uniforms.uDim.value * 0.5);
+		edgeMaterial.opacity = edgeBaseOpacity * edgesIn * (1 - uniforms.uDim.value * 0.25);
 		focusMaterial.opacity = 0.95 * edgesIn;
 
 		// rotation: idle spin, drag inertia, or easing toward the selected node
@@ -626,7 +637,7 @@ export function mountGraph(host: HTMLElement): GraphController {
 			const at = screenOf(index);
 			const depth = Math.max(0, Math.min(1, (0.985 - at.z) * 60));
 			const strong = index === selected;
-			label.style.transform = `translate(${Math.round(at.x + 12)}px, ${Math.round(at.y - 9)}px)`;
+			label.style.transform = `translate(${Math.round(at.x + (strong ? 26 : 12))}px, ${Math.round(at.y - (strong ? 20 : 9))}px)`;
 			label.style.opacity = String(Math.min(build * 1.4, 1) * (strong ? 1 : 0.3 + depth * 0.7) * (1 - scrolled));
 		});
 
