@@ -26,6 +26,39 @@ Open <http://localhost:4321/>.
 | `npm run check` | Type-check Astro and TypeScript files |
 | `npm run capture -- --repo <click clone>` | Re-record the real cidx output the site displays |
 
+## Deployment
+
+The site is hosted on Vercel at <https://cidx.vercel.app>. The Vercel project
+is connected to this repository, and `vercel.json` at the repository root
+holds the whole configuration: install and build inside `website/`, serve
+`website/dist`, redirect every URL to its trailing-slash form.
+
+- A push to `main` deploys to production, but only when the commit touches
+  `website/`, `docs/`, `pyproject.toml`, or `vercel.json`.
+- Other branches and pull requests get a preview URL.
+- A release needs no extra step: the version bump in `pyproject.toml`
+  triggers a build, and the published version shown on the page is also
+  refreshed in the browser from the PyPI API.
+
+To deploy by hand from the repository root:
+
+```bash
+vercel deploy --prod
+```
+
+### Custom domain
+
+1. In the Vercel dashboard, open the `cidx` project, then Settings, Domains,
+   and add the domain.
+2. At your DNS provider, add the record Vercel shows (a CNAME to
+   `cname.vercel-dns.com` for a subdomain, or an A record for an apex domain).
+3. Mark the new domain as the production domain. The next build picks it up
+   for canonical URLs and the sitemap with no code change.
+
+To host somewhere that serves the site under a sub-path, build with
+`SITE_URL` and `SITE_BASE` set, for example
+`SITE_URL=https://gativarshney.github.io SITE_BASE=/cidx npm run build`.
+
 ## Where the content comes from
 
 Nothing shown as output is typed by hand.

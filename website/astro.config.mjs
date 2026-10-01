@@ -12,7 +12,9 @@ const base = process.env.SITE_BASE ?? '/';
 export default defineConfig({
 	site,
 	base,
-	trailingSlash: 'always',
+	// Accept /page and /page/ alike in dev; the host redirects to the slash form.
+	trailingSlash: 'ignore',
+	redirects: { '/docs': '/docs/quickstart/' },
 	integrations: [
 		starlight({
 			title: 'cidx',
