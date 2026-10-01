@@ -7,6 +7,13 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Project website in `website/` (Astro, Starlight, three.js): a landing page
+  with a 3D graph of a real index, a terminal demo replayed from captured
+  cidx output, and the start of the documentation. The Node toolchain is
+  confined to that directory (ADR-017).
+
 ## [0.1.0a2] - 2026-09-16
 
 Fixes found by auditing cidx on Django (3,043 files) and by CI: two
