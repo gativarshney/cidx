@@ -13,28 +13,28 @@ const tiles = [
 		decimals: 1,
 		unit: ' s',
 		label: 'to index Django',
-		detail: `${formatNumber(django.files)} files, ${formatNumber(django.symbols)} symbols, ${formatNumber(django.refs)} references. Warm file cache; 68 to 97 s on a cold one.`,
+		detail: `${formatNumber(django.files)} files, ${formatNumber(django.symbols)} symbols`,
 	},
 	{
 		count: Number(indexSeconds),
 		decimals: 2,
 		unit: ' s',
 		label: 'to index click',
-		detail: `${graph.counts.files} files, ${formatNumber(graph.counts.symbols)} symbols, ${formatNumber(graph.counts.refs)} references.`,
+		detail: `${graph.counts.files} files, ${formatNumber(graph.counts.symbols)} symbols`,
 	},
 	{
 		count: demo.live.medianMs,
 		decimals: 0,
 		unit: ' ms',
 		label: 'save to queryable on click',
-		detail: `Median of ${demo.live.samplesMs.length} saves through the real watcher. On Django: ${django.saveIsolatedSeconds} s isolated, ${django.saveBackToBackSeconds} s back to back.`,
+		detail: `Django: ${django.saveIsolatedSeconds} s isolated, ${django.saveBackToBackSeconds} s back to back`,
 	},
 	{
 		count: tests.count,
 		decimals: 0,
 		unit: '',
 		label: 'tests, green on 3 OSes',
-		detail: 'Including a property-based suite that asserts the incremental index equals a cold rebuild.',
+		detail: 'Including the property-based convergence suite',
 	},
 ];
 ---
@@ -53,7 +53,7 @@ const tiles = [
 	<figure class="chart" data-reveal>
 		<figcaption>
 			<h3>Query latency on Django, p95</h3>
-			<p>60 samples per query, library path. The target is {django.targetQueryMs} ms.</p>
+			<p>60 samples each.</p>
 		</figcaption>
 		<div class="plot" role="img" aria-label={`Bar chart of p95 query latency on Django. ${django.queries.map((query) => `${query.name} ${query.p95} milliseconds`).join(', ')}. Target ${django.targetQueryMs} milliseconds.`}>
 			<span class="overlay" aria-hidden="true">
@@ -69,17 +69,13 @@ const tiles = [
 				</div>
 			))}
 		</div>
-		<p class="note">
-			Exact lookups meet the target at this size. Ranked search and the repository map do not: both
-			scan, and that is published as measured.
-		</p>
+		<p class="note">Ranked search and the repo map miss the target at this size. Published as measured.</p>
 	</figure>
 
 	<p class="source">
-		Django numbers: {django.repository}@{django.commit.slice(0, 7)}, measured {django.measured} on a
-		{django.machine}, recorded with the commands to reproduce them in
-		<a href={`${REPO_URL}/blob/main/${django.source}`}>{django.source}</a>. click numbers: captured
-		{demo.provenance.captured} with {demo.provenance.cidx} on {demo.provenance.machine.cpu}.
+		{django.repository}@{django.commit.slice(0, 7)}, {django.measured}, {django.machine}:{' '}
+		<a href={`${REPO_URL}/blob/main/${django.source}`}>{django.source}</a>. click: {demo.provenance.captured},{' '}
+		{demo.provenance.cidx}, {demo.provenance.machine.cpu}.
 	</p>
 </div>
 

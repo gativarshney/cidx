@@ -23,10 +23,7 @@ import { href, REPO_URL } from '../util/site';
 		<div class="wrap">
 			<p class="eyebrow">Setup</p>
 			<h2 class="title">Add it to your agent in <em>one block of JSON.</em></h2>
-			<p class="lede">
-				Any MCP client that can start a stdio server takes the same two facts: a command and its
-				arguments. No API key, no account, nothing else to configure.
-			</p>
+			<p class="lede">A command and its arguments. No API key, no account.</p>
 			<div class="block">
 				<Connect />
 			</div>
@@ -37,10 +34,7 @@ import { href, REPO_URL } from '../util/site';
 		<div class="wrap">
 			<p class="eyebrow">See it work</p>
 			<h2 class="title">Index, ask, edit, <em>ask again.</em></h2>
-			<p class="lede">
-				Five scenes on a real repository. Nothing here is typed by hand: a script runs cidx and the
-				site replays what it printed.
-			</p>
+			<p class="lede">Real cidx output on a real repository, replayed.</p>
 			<div class="block" data-reveal>
 				<Terminal />
 			</div>
@@ -51,10 +45,7 @@ import { href, REPO_URL } from '../util/site';
 		<div class="wrap">
 			<p class="eyebrow">Through MCP</p>
 			<h2 class="title">What your agent reads, <em>before and after.</em></h2>
-			<p class="lede">
-				Agents find code by grepping and reading files. That works, and it fills the context window
-				with text that never mattered. cidx returns locations and signatures instead.
-			</p>
+			<p class="lede">Locations and signatures instead of whole files.</p>
 			<div class="block">
 				<AgentCompare />
 			</div>
@@ -65,10 +56,7 @@ import { href, REPO_URL } from '../util/site';
 		<div class="wrap">
 			<p class="eyebrow">The MCP surface</p>
 			<h2 class="title">Five tools. <em>All read-only.</em></h2>
-			<p class="lede">
-				cidx never writes to, executes, or modifies your repository. Whatever a file in the repo
-				says, cidx cannot be made to write or run anything.
-			</p>
+			<p class="lede">cidx cannot write to or run anything in your repository.</p>
 			<div class="block">
 				<Tools />
 				<Budget />
@@ -80,7 +68,7 @@ import { href, REPO_URL } from '../util/site';
 		<div class="wrap">
 			<p class="eyebrow">How it works</p>
 			<h2 class="title">From source bytes to a <em>700-token answer.</em></h2>
-			<p class="lede">Five stages. Select one to see what it does and why it is built that way.</p>
+			
 			<div class="block">
 				<Pipeline />
 			</div>
@@ -89,9 +77,8 @@ import { href, REPO_URL } from '../util/site';
 					<p class="eyebrow">The invariant</p>
 					<h3>The incremental index always equals a cold rebuild.</h3>
 					<p>
-						A property-based suite generates random storms of edits, deletes and renames, then
-						asserts the live index matches a fresh build row for row. It runs in CI on every push,
-						on three operating systems. You can run the same proof on your own repository at any time.
+						A property-based test suite throws random edits, deletes and renames at the index and
+						asserts it still matches a fresh build. Run the same check on your repo any time.
 					</p>
 				</div>
 				<div class="proof">
@@ -110,10 +97,7 @@ import { href, REPO_URL } from '../util/site';
 		<div class="wrap">
 			<p class="eyebrow">Measured, not claimed</p>
 			<h2 class="title">The numbers, <em>including the misses.</em></h2>
-			<p class="lede">
-				Every figure comes from a run you can repeat, with the machine and repository stated. Where
-				a target is missed, the measured number is published anyway.
-			</p>
+			<p class="lede">Every figure is reproducible. Missed targets are published too.</p>
 			<div class="block">
 				<Numbers />
 			</div>
@@ -124,7 +108,7 @@ import { href, REPO_URL } from '../util/site';
 		<div class="wrap">
 			<p class="eyebrow">Known limitations</p>
 			<h2 class="title">What it <em>does not</em> do.</h2>
-			<p class="lede">Stated up front, so you can decide in a minute whether cidx fits.</p>
+			
 			<div class="block">
 				<Limits />
 			</div>

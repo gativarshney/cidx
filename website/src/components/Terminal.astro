@@ -20,31 +20,31 @@ const scenes: { id: string; label: string; caption: string; steps: Step[] }[] = 
 	{
 		id: 'index',
 		label: 'Index',
-		caption: 'One command builds the index. It lives in your user cache, never inside the repository.',
+		caption: 'Stored in your user cache, never inside the repo.',
 		steps: [shell(demo.cli.index), shell(demo.cli.stats)],
 	},
 	{
 		id: 'define',
 		label: 'Definitions',
-		caption: 'Exact names first. If nothing matches exactly, the same ranked fuzzy search the MCP server uses.',
+		caption: 'Exact match first, then ranked fuzzy search.',
 		steps: [shell(demo.cli.definition), shell(demo.cli.fuzzy)],
 	},
 	{
 		id: 'refs',
 		label: 'References',
-		caption: 'Each usage carries a confidence tag that says how it was matched to its definition.',
+		caption: 'Each usage is tagged with how it was matched.',
 		steps: [shell(demo.cli.references)],
 	},
 	{
 		id: 'outline',
 		label: 'Outline',
-		caption: 'Every symbol in a file, in source order, without opening the file.',
+		caption: 'A whole file, without opening it.',
 		steps: [shell(demo.cli.outline)],
 	},
 	{
 		id: 'live',
 		label: 'Live edit',
-		caption: `The watcher re-indexes only the saved file. Median of ${samples.length} saves on this repository: ${demo.live.medianMs} ms from save to queryable (range ${samples[0]} to ${samples[samples.length - 1]} ms).`,
+		caption: `${demo.live.medianMs} ms from save to queryable (median of ${samples.length} saves).`,
 		steps: [
 			{ kind: 'note', text: '# cidx serve is running, started by the MCP client' },
 			{ kind: 'note', text: '# you save src/click/utils.py with one new line: def live_demo_symbol(): pass' },
@@ -95,9 +95,9 @@ const { provenance } = demo;
 		</div>
 	))}
 	<p class="provenance">
-		Real output: {provenance.cidx} on
-		<a href={`https://github.com/${provenance.repository}/tree/${provenance.commit}`}>{provenance.repository}@{provenance.commit.slice(0, 7)}</a>,
-		captured {provenance.captured} on {provenance.machine.os.replace('Windows_NT', 'Windows')}, {provenance.machine.cpu}.
+		Real output: {provenance.cidx} on{' '}
+		<a href={`https://github.com/${provenance.repository}/tree/${provenance.commit}`}>{provenance.repository}@{provenance.commit.slice(0, 7)}</a>,{' '}
+		{provenance.captured}.
 	</p>
 </div>
 
@@ -398,7 +398,6 @@ const { provenance } = demo;
 		border-top: 1px solid var(--line);
 		font-size: 0.9rem;
 		color: var(--text-soft);
-		min-height: 4.2rem;
 	}
 
 	.provenance {

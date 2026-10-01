@@ -1,29 +1,11 @@
 ---
 const limits = [
-	{
-		title: 'Two languages',
-		text: 'Python and TypeScript/JavaScript, including TSX and JSX. Other files are not indexed.',
-	},
-	{
-		title: 'No semantic search',
-		text: 'Retrieval works on names, references and file structure. "Where is auth handled?" is a question for grep or your agent.',
-	},
-	{
-		title: 'No type checker',
-		text: 'References are matched by scope, imports and names. The confidence tag tells you which.',
-	},
-	{
-		title: 'TypeScript types are skipped',
-		text: 'interface, type alias and enum declarations have no symbol kind yet. Value-level code is covered.',
-	},
-	{
-		title: 'Namespace imports are not followed',
-		text: 'import * as core binds core, so core.thing() resolves by unique name at best.',
-	},
-	{
-		title: 'Freshness cost grows with the repo',
-		text: 'After each save, references are re-resolved across the whole index: milliseconds on a small project, about 1.5 s on Django.',
-	},
+	{ title: 'Two languages', text: 'Python and TypeScript/JavaScript only.' },
+	{ title: 'No semantic search', text: 'Names and structure, not concepts.' },
+	{ title: 'No type checker', text: 'Matches carry a confidence tag instead.' },
+	{ title: 'TypeScript types are skipped', text: 'interface, type and enum are not indexed yet.' },
+	{ title: 'Namespace imports', text: 'import * as x is not followed.' },
+	{ title: 'Freshness cost grows', text: 'Each save re-resolves the whole index: about 1.5 s on Django.' },
 ];
 ---
 

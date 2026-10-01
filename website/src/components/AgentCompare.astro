@@ -28,16 +28,12 @@ const outlineRows = mcp.outline.text.split('\n').length - 2;
 			<div class="call">
 				<p class="tool"><span>shell</span>{baseline.grep.command}</p>
 				<pre class="result faded">{baseline.grep.sample.slice(0, 6).join('\n')}</pre>
-				<p class="more">
-					… {formatNumber(baseline.grep.lines - 6)} more lines: changelog entries, docs, CI config,
-					strings, and <code>secho</code>, mixed in with the calls
-				</p>
+				<p class="more">… {formatNumber(baseline.grep.lines - 6)} more lines of docs, changelog, config and strings</p>
 				<p class="cost">{formatNumber(baseline.grep.lines)} lines · ~{formatNumber(baseline.grep.tokens)} tokens</p>
 			</div>
 
 			<div class="call">
 				<p class="tool"><span>shell</span>{baseline.readFile.command}</p>
-				<p class="more">the whole file, to find out what it defines</p>
 				<p class="cost">{formatNumber(baseline.readFile.lines)} lines · ~{formatNumber(baseline.readFile.tokens)} tokens</p>
 			</div>
 
@@ -57,7 +53,7 @@ const outlineRows = mcp.outline.text.split('\n').length - 2;
 			<div class="call">
 				<p class="tool"><span>mcp</span>find_references("echo")</p>
 				<pre class="result" set:html={tint(head(mcp.references.text, 5))} />
-				<p class="more">… {referenceRows - 5} more rows, resolved to their definition where possible</p>
+				<p class="more">… {referenceRows - 5} more rows</p>
 				<pre class="result" set:html={tint(tail(mcp.references.text, 2))} />
 				<p class="cost">{referenceRows} rows · ~{formatNumber(mcp.references.tokens)} tokens · {mcp.references.ms} ms</p>
 			</div>
@@ -65,7 +61,6 @@ const outlineRows = mcp.outline.text.split('\n').length - 2;
 			<div class="call">
 				<p class="tool"><span>mcp</span>outline_file("src/click/core.py")</p>
 				<pre class="result" set:html={tint(tail(mcp.outline.text, 2))} />
-				<p class="more">{outlineRows} symbols with signatures, then a marker that says how many were cut</p>
 				<p class="cost">{outlineRows} rows · ~{formatNumber(mcp.outline.tokens)} tokens · {mcp.outline.ms} ms</p>
 			</div>
 
@@ -78,11 +73,8 @@ const outlineRows = mcp.outline.text.split('\n').length - 2;
 	</div>
 
 	<p class="footnote">
-		About {ratio}x less tool output for these two questions. Both columns are real output on
-		{provenance.repository}@{provenance.commit.slice(0, 7)}, with tokens estimated as characters / 4
-		(the estimate cidx itself uses). This compares the size of tool output, not a full agent run: a
-		careful agent would narrow its grep, and cidx truncates long answers to its budget and says so.
-		When cidx has no answer, it tells the agent to fall back to grep.
+		About {ratio}x less tool output. Both sides are real output on {provenance.repository}; tokens are
+		estimated as characters / 4. This compares output size, not a full agent run.
 	</p>
 </div>
 

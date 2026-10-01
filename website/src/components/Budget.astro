@@ -2,7 +2,7 @@
 import demo from '../data/demo.json';
 import { tint } from '../util/tint';
 
-const { budget, provenance } = demo;
+const { budget } = demo;
 const DEFAULT = 700;
 const cost = (line: string) => Math.max(1, Math.floor(line.length / 4));
 ---
@@ -12,10 +12,8 @@ const cost = (line: string) => Math.max(1, Math.floor(line.length / 4));
 		<p class="eyebrow">Try it</p>
 		<h3>Drag the token budget.</h3>
 		<p>
-			Every tool takes <code>max_tokens</code>. cidx keeps whole result rows until the next one would
-			not fit, then marks the answer as truncated and reports the match count. This is the real answer to
-			<code>find_references("{budget.name}")</code> on {provenance.repository}, trimmed in your browser
-			by the same rule.
+			cidx keeps whole rows until the next one would not fit, then marks the answer truncated. A
+			real <code>find_references("{budget.name}")</code> answer, trimmed by the same rule.
 		</p>
 
 		<label class="slider">
@@ -39,11 +37,7 @@ const cost = (line: string) => Math.max(1, Math.floor(line.length / 4));
 				<dd>~<span data-budget-spent></span></dd>
 			</div>
 		</dl>
-		<p class="verified">
-			Checked against the real server: the capture script fails unless this rule reproduces cidx's
-			own output at max_tokens {budget.verifiedAt.join(' and ')}. find_references reads at most 200
-			matches, so its total_matches tops out at 200.
-		</p>
+		<p class="verified">Verified against the real server at max_tokens {budget.verifiedAt.join(' and ')}.</p>
 	</div>
 
 	<div class="response" aria-live="off">

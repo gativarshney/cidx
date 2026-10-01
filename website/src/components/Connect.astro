@@ -1,7 +1,6 @@
 ---
 import CopyButton from './CopyButton.astro';
 import demo from '../data/demo.json';
-import { href } from '../util/site';
 
 const config = (command: string, args: string[]) =>
 	JSON.stringify({ mcpServers: { cidx: { command, args } } }, null, 2);
@@ -9,13 +8,13 @@ const variants = [
 	{
 		id: 'uvx',
 		label: 'uvx',
-		note: 'Nothing to install first. uv downloads cidx on the first start.',
+		note: 'Nothing to install first.',
 		code: config('uvx', ['cidx', 'serve', '--repo', '/absolute/path/to/repo']),
 	},
 	{
 		id: 'path',
 		label: 'pip install',
-		note: 'After pip install cidx, with cidx on the PATH your agent uses.',
+		note: 'After pip install cidx.',
 		code: config('cidx', ['serve', '--repo', '/absolute/path/to/repo']),
 	},
 ];
@@ -58,27 +57,20 @@ const exchanges = [
 			<span class="n">1</span>
 			<div>
 				<h3>Paste the block</h3>
-				<p>
-					Into your MCP client's server config. Replace the path with your repository's absolute path.
-					On Windows, write it with forward slashes: <code>C:/code/myrepo</code>.
-				</p>
+				<p>Use your repo's absolute path. On Windows, forward slashes: <code>C:/code/myrepo</code>.</p>
 			</div>
 		</li>
 		<li data-reveal style="transition-delay: 80ms">
 			<span class="n">2</span>
 			<div>
 				<h3>Restart the agent</h3>
-				<p>
-					It starts <code>cidx serve</code> as a child process. If there is no index yet, cidx builds
-					one, then keeps it fresh while the agent runs.
-				</p>
+				<p>It starts cidx, which builds the index and keeps it fresh.</p>
 			</div>
 		</li>
 		<li data-reveal style="transition-delay: 160ms">
 			<span class="n">3</span>
 			<div>
 				<h3>Ask about your code</h3>
-				<p>The agent now has five read-only tools it can call instead of grepping and reading whole files.</p>
 				<ul class="chips">
 					{toolNames.map((name) => <li>{name}</li>)}
 				</ul>
@@ -112,11 +104,6 @@ const exchanges = [
 	</div>
 </div>
 <script type="application/json" id="wire-exchanges" set:html={JSON.stringify(exchanges)} />
-
-<p class="after">
-	Client-specific setup, a smoke test, and troubleshooting are in the
-	<a href={href('/docs/quickstart/')}>docs</a>.
-</p>
 
 <script>
 	// config tabs

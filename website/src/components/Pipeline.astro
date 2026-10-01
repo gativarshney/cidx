@@ -9,32 +9,32 @@ const stages = [
 		id: 'parse',
 		label: 'Parse',
 		tech: 'tree-sitter',
-		what: 'Every Python, TypeScript, TSX and JavaScript file is parsed from raw bytes. Extraction patterns live in .scm query files, one per grammar, and emit symbols (name, kind, lines, signature, parent) and raw references.',
-		why: 'tree-sitter is error tolerant. A half-written file still produces a tree, so the index survives every save, including the broken ones in the middle of an edit.',
+		what: 'Each .py, .ts, .tsx and .js file is parsed from bytes into symbols and raw references.',
+		why: 'tree-sitter tolerates broken code, so the index survives half-written files.',
 		facts: ['4 grammars', 'functions · classes · methods · consts · imports', 'files over 1 MiB skipped'],
 	},
 	{
 		id: 'store',
 		label: 'Store',
 		tech: 'SQLite',
-		what: 'Rows land in one SQLite file: files, symbols, refs, and an FTS5 table for fuzzy name search. The file lives in your user cache, keyed by a hash of the repository path.',
-		why: 'Durability and crash safety come from the database, not from custom code. WAL mode lets the watcher write while the MCP server reads. Nothing is ever written inside your repository.',
+		what: 'Rows go into one SQLite file in your user cache: files, symbols, refs, and FTS5 for fuzzy search.',
+		why: 'The database provides crash safety, and nothing is written inside your repo.',
 		facts: ['stdlib sqlite3', 'WAL + FTS5', 'one transaction per file'],
 	},
 	{
 		id: 'fresh',
 		label: 'Stay fresh',
 		tech: 'watcher + content hashes',
-		what: 'A save is debounced for 100 ms, then the file is hashed with BLAKE2b. Same hash: stop. Different: re-parse and swap that file\'s rows in a single transaction. Every 30 seconds a sweep re-checks the whole tree.',
-		why: 'A stale index silently misleads an agent. Operating systems drop file events under load, so the sweep is the slow path that guarantees truth. A crash mid-update rolls back: the index is never half-written.',
+		what: 'On save: wait 100 ms, hash the file, and if it changed, swap its rows in one transaction. A sweep every 30 s re-checks everything.',
+		why: 'Operating systems drop file events. The sweep guarantees the index catches up.',
 		facts: ['100 ms debounce', '30 s reconciliation sweep', 'honors .gitignore'],
 	},
 	{
 		id: 'resolve',
 		label: 'Resolve',
 		tech: 'confidence tags',
-		what: 'Each reference is matched to a definition by a fixed cascade: a definition in the same file (exact), then an import followed to its source file (import), then a unique name across the repository (name-only). A reference with no match, or with several candidates, is also tagged name-only and has no target.',
-		why: 'There is no type checker, so cidx says how each match was made instead of promising precision. An agent can trust exact and import, and treat name-only as a lead.',
+		what: 'A fixed cascade: same file (exact), followed import (import), unique name (name-only). No match is also name-only.',
+		why: 'There is no type checker, so cidx states how each match was made.',
 		facts: [
 			`click: ${formatNumber(byConfidence.exact)} exact`,
 			`${formatNumber(byConfidence.import)} import`,
@@ -45,8 +45,8 @@ const stages = [
 		id: 'answer',
 		label: 'Answer',
 		tech: 'rank, budget, MCP',
-		what: 'Five read-only MCP tools over stdio. Search results are ranked by match tier, symbol kind, reference count, path locality and edit recency. Every answer is trimmed to about 700 tokens and stamped with the index age.',
-		why: 'A tool that cannot write or execute has no prompt-injection blast radius. Every miss tells the agent to fall back to grep, so the worst case with cidx equals not having it.',
+		what: 'Five read-only MCP tools. Search is ranked; every answer is trimmed to about 700 tokens and stamped with the index age.',
+		why: 'Read-only tools cannot change or run your code. Every miss recommends grep.',
 		facts: ['5 tools, all read-only', '~700 tokens per answer', 'truncation marker + index_age_ms'],
 	},
 ];
@@ -78,11 +78,11 @@ const stages = [
 	{stages.map((stage, index) => (
 		<div class="detail" role="tabpanel" id={`stage-${stage.id}`} aria-labelledby={`stage-tab-${stage.id}`} hidden={index !== 0} tabindex="0">
 			<div>
-				<h3>What happens</h3>
+				<h3>What</h3>
 				<p>{stage.what}</p>
 			</div>
 			<div>
-				<h3>Why it is built this way</h3>
+				<h3>Why</h3>
 				<p>{stage.why}</p>
 			</div>
 			<ul class="facts">
@@ -267,7 +267,7 @@ const stages = [
 		grid-template-columns: 1fr 1fr;
 		gap: 1.5rem 2.5rem;
 		padding: 1.75rem 1.5rem;
-		min-height: 15rem;
+		min-height: 10rem;
 	}
 
 	.detail[hidden] {
