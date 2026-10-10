@@ -184,6 +184,7 @@ def _run_query(args: argparse.Namespace) -> int:
                 _format_reference_row,
                 f"no references to {args.name!r}; try grep as a fallback",
                 _stale_note(store, args.repo, [r.path for r in refs]),
+                budget.unresolved_references_message(args.name, refs),
             )
         matches: list = query.find_definition(store, args.name, limit=args.limit)
         if not matches:
@@ -210,11 +211,12 @@ def _emit(
     rows: list,
     format_row: Callable[..., str],
     empty_message: str,
-    note: str | None = None,
+    *notes: str | None,
 ) -> int:
     # notes go to stderr, so stdout stays pure data (and --json parseable)
-    if note:
-        print(note, file=sys.stderr)
+    for note in notes:
+        if note:
+            print(note, file=sys.stderr)
     if args.json:
         print(json.dumps([dataclasses.asdict(row) for row in rows]))
         return 0

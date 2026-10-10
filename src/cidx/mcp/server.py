@@ -43,9 +43,10 @@ def create_server(repo_root: str | Path, db_path: str | Path) -> FastMCP:
         cited: list[str],
         total: int,
         max_tokens: int,
+        notes: tuple[str, ...] = (),
     ) -> str:
         """Budget *lines*, then flag any shown citation that went stale."""
-        shaped = budget.shape(lines, total, store, max_tokens)
+        shaped = budget.shape(lines, total, store, max_tokens, notes=notes)
         stale = freshness.changed_paths(store, root, cited[: len(shaped.lines)])
         if stale:
             shaped = dataclasses.replace(
@@ -126,7 +127,9 @@ def create_server(repo_root: str | Path, db_path: str | Path) -> FastMCP:
                 for r in rows
             ]
             cited = [r.path for r in rows]
-            return respond(store, lines, cited, len(rows), max_tokens)
+            unresolved = budget.unresolved_references_message(name, rows)
+            notes = (unresolved,) if unresolved else ()
+            return respond(store, lines, cited, len(rows), max_tokens, notes)
 
     @server.tool(
         description=(

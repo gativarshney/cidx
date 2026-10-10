@@ -22,6 +22,12 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   files it cites and names any that changed (ADR-018); measured at 0.8 ms
   for a typical answer on Django.
 
+### Changed
+
+- `find_references` now says so when not one returned usage resolved to a
+  definition. On Django, `Model.save` returned 959 usages, all unresolved
+  name matches, with only the per-row `[name-only]` tags to show it.
+
 ## [0.1.0a2] - 2026-09-16
 
 Fixes found by auditing cidx on Django (3,043 files) and by CI: two

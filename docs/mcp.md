@@ -144,7 +144,11 @@ What to know when reading a response:
   `[import]`: the file imports that name and cidx followed the import to
   its source. `[name-only]`: either the only definition of that name in the
   repository, or no definition at all (then no `->` target is shown). There
-  is no type checker behind the tags; treat `name-only` as a lead.
+  is no type checker behind the tags; treat `name-only` as a lead. When not
+  one returned usage resolved, the response says so in a final
+  `cidx: none of these usages resolved ...` line. That is typical for method
+  names (`Model.save`): a call like `obj.save()` cannot be tied to a class
+  without type information.
 - **Misses fail open.** When cidx cannot answer, it says so and recommends
   grep — for example `cidx: no definition of 'foo' in the index. Fall back
   to grep/ripgrep for this question; results may simply not be indexed

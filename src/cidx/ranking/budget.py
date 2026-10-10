@@ -10,8 +10,10 @@ equals not having it.
 from __future__ import annotations
 
 import time
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 
+from cidx.core.query import ReferenceRow
 from cidx.core.store import Store
 
 DEFAULT_MAX_TOKENS = 700
@@ -88,6 +90,25 @@ def stale_message(paths: list[str]) -> str:
         f"cidx: {len(paths)} cited {noun} changed on disk since indexing"
         f" ({shown}); their lines may be out of date. Re-read them, or run"
         " `cidx index` (a running `cidx serve` catches up on its own)."
+    )
+
+
+def unresolved_references_message(
+    name: str, rows: Sequence[ReferenceRow]
+) -> str | None:
+    """Say so when no returned usage resolved to a definition, or None.
+
+    Row tags are honest one by one; this states the property of the whole
+    list, which an agent would otherwise have to infer from every row.
+    """
+    if not rows or any(row.resolved_qualified_name for row in rows):
+        return None
+    bare = name.rsplit(".", maxsplit=1)[-1]
+    return (
+        f"cidx: none of these usages resolved to a definition of {name!r};"
+        f" they match the name `{bare}` only. Calls through an object"
+        f" (`x.{bare}()`) need type information cidx does not have, so verify"
+        " each one before relying on it."
     )
 
 
