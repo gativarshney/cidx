@@ -7,36 +7,21 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.1.0a2] - 2026-10-10
+
+Fixes found by auditing cidx on Django (3,043 files) and by CI: two
+superlinear paths, a write-lock race, a silent watcher failure, a blind
+spot in the convergence check, and answers that could cite files changed
+since indexing. The documentation now states performance at that scale
+and where cidx helps and where grep or a language server is the better
+tool. No new MCP tools and no new indexed languages.
+
 ### Added
 
 - Project website in `website/` (Astro, Starlight, three.js): a landing page
   with a 3D graph of a real index, a terminal demo replayed from captured
   cidx output, and the start of the documentation. The Node toolchain is
   confined to that directory (ADR-017).
-
-### Fixed
-
-- Answers could cite files that had changed or been deleted since they were
-  indexed, with nothing to say so: `index_age_ms` measures time since the
-  last write, not drift on disk. Every CLI and MCP answer now re-checks the
-  files it cites and names any that changed (ADR-018); measured at 0.8 ms
-  for a typical answer on Django.
-
-### Changed
-
-- `find_references` now says so when not one returned usage resolved to a
-  definition. On Django, `Model.save` returned 959 usages, all unresolved
-  name matches, with only the per-row `[name-only]` tags to show it.
-
-## [0.1.0a2] - 2026-09-16
-
-Fixes found by auditing cidx on Django (3,043 files) and by CI: two
-superlinear paths, a write-lock race, a silent watcher failure, a blind
-spot in the convergence check, and documentation that now states
-performance at that scale. No new capabilities beyond verification tooling.
-
-### Added
-
 - `docs/mcp.md`: connecting an agent, what each of the five tools returns,
   a smoke test, and troubleshooting, written for someone who has never used
   cidx or MCP.
@@ -50,6 +35,11 @@ performance at that scale. No new capabilities beyond verification tooling.
 
 ### Fixed
 
+- Answers could cite files that had changed or been deleted since they were
+  indexed, with nothing to say so: `index_age_ms` measures time since the
+  last write, not drift on disk. Every CLI and MCP answer now re-checks the
+  files it cites and names any that changed (ADR-018); measured at 0.8 ms
+  for a typical answer on Django.
 - Cold discovery and the incremental engine disagreed on junk directories
   (`.venv`, `node_modules`, `build`, …) that a repository had not
   gitignored: the cold walk indexed them via `git ls-files` while the
@@ -95,6 +85,9 @@ performance at that scale. No new capabilities beyond verification tooling.
 
 ### Changed
 
+- `find_references` now says so when not one returned usage resolved to a
+  definition. On Django, `Model.save` returned 959 usages, all unresolved
+  name matches, with only the per-row `[name-only]` tags to show it.
 - Schema version is now 2. An index built by an earlier cidx is rebuilt
   automatically on first open; the next `cidx index` or `cidx serve` then
   repopulates it (a one-time cost equal to a fresh build).
