@@ -78,6 +78,19 @@ def index_age_ms(store: Store) -> int:
     return max(0, int((time.time() - row["newest"]) * 1000))
 
 
+def stale_message(paths: list[str]) -> str:
+    """Flag citations into files that changed after indexing (ADR-018)."""
+    shown = ", ".join(paths[:3])
+    if len(paths) > 3:
+        shown += f", +{len(paths) - 3} more"
+    noun = "file" if len(paths) == 1 else "files"
+    return (
+        f"cidx: {len(paths)} cited {noun} changed on disk since indexing"
+        f" ({shown}); their lines may be out of date. Re-read them, or run"
+        " `cidx index` (a running `cidx serve` catches up on its own)."
+    )
+
+
 def fail_open_message(reason: str) -> str:
     """The honest miss: say what happened and hand the agent its fallback."""
     return (

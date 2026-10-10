@@ -133,6 +133,12 @@ What to know when reading a response:
 - **Freshness stamp.** Every response ends with `index_age_ms: N`, the
   milliseconds since the most recent file was indexed. A large value on a
   repository nobody is editing is normal, not a sign of staleness.
+- **Changed-file note.** Before answering, cidx re-checks the files it
+  cites. If any changed on disk after they were indexed, the response ends
+  with `cidx: N cited files changed on disk since indexing (...)`: those
+  line numbers may be out of date, so re-read the files. A running
+  `cidx serve` repairs the index on its own within seconds; otherwise run
+  `cidx index`.
 - **Confidence tags on references** say how a usage was matched to a
   definition. `[exact]`: a definition of that name in the same file.
   `[import]`: the file imports that name and cidx followed the import to

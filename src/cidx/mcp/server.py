@@ -8,15 +8,19 @@ against the benchmark before rewording (AGENTS.md).
 Every tool opens a fresh read connection per call (WAL keeps readers and the
 watcher's writer independent), fits its response to a token budget, stamps
 freshness, and fails open: on any miss the answer says so and recommends
-grep, so the worst case with cidx equals not having it.
+grep, so the worst case with cidx equals not having it. Before answering, the
+files a response cites are re-checked against disk, and any that changed
+since indexing are named in the response (ADR-018).
 """
 
 from __future__ import annotations
 
+import dataclasses
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP
 
+from cidx.core import freshness
 from cidx.core import query as query_layer
 from cidx.core.store import Store, SymbolRow
 from cidx.ranking import budget, scorer
@@ -32,6 +36,22 @@ def create_server(repo_root: str | Path, db_path: str | Path) -> FastMCP:
         if not database.exists():
             return None
         return Store.open(database)
+
+    def respond(
+        store: Store,
+        lines: list[str],
+        cited: list[str],
+        total: int,
+        max_tokens: int,
+    ) -> str:
+        """Budget *lines*, then flag any shown citation that went stale."""
+        shaped = budget.shape(lines, total, store, max_tokens)
+        stale = freshness.changed_paths(store, root, cited[: len(shaped.lines)])
+        if stale:
+            shaped = dataclasses.replace(
+                shaped, notes=(*shaped.notes, budget.stale_message(stale))
+            )
+        return shaped.render()
 
     @server.tool(
         description=(
@@ -49,9 +69,13 @@ def create_server(repo_root: str | Path, db_path: str | Path) -> FastMCP:
             rows, total = scorer.search_symbols(store, query, limit=100)
             if not rows:
                 return _empty(store, f"no symbols match {query!r}")
-            return budget.shape(
-                [_symbol_line(row) for row in rows], total, store, max_tokens
-            ).render()
+            return respond(
+                store,
+                [_symbol_line(row) for row in rows],
+                [row.path for row in rows],
+                total,
+                max_tokens,
+            )
 
     @server.tool(
         description=(
@@ -68,9 +92,13 @@ def create_server(repo_root: str | Path, db_path: str | Path) -> FastMCP:
             rows = query_layer.find_definition(store, name)
             if not rows:
                 return _empty(store, f"no definition of {name!r} in the index")
-            return budget.shape(
-                [_symbol_line(row) for row in rows], len(rows), store, max_tokens
-            ).render()
+            return respond(
+                store,
+                [_symbol_line(row) for row in rows],
+                [row.path for row in rows],
+                len(rows),
+                max_tokens,
+            )
 
     @server.tool(
         description=(
@@ -97,7 +125,8 @@ def create_server(repo_root: str | Path, db_path: str | Path) -> FastMCP:
                 )
                 for r in rows
             ]
-            return budget.shape(lines, len(rows), store, max_tokens).render()
+            cited = [r.path for r in rows]
+            return respond(store, lines, cited, len(rows), max_tokens)
 
     @server.tool(
         description=(
@@ -121,7 +150,8 @@ def create_server(repo_root: str | Path, db_path: str | Path) -> FastMCP:
                 + (f"  {r.signature}" if r.signature else "")
                 for r in rows
             ]
-            return budget.shape(lines, len(rows), store, max_tokens).render()
+            cited = [Path(path).as_posix()] * len(rows)
+            return respond(store, lines, cited, len(rows), max_tokens)
 
     @server.tool(
         description=(
@@ -143,7 +173,8 @@ def create_server(repo_root: str | Path, db_path: str | Path) -> FastMCP:
                 f" {e.incoming_refs} inbound)  " + (", ".join(e.top_symbols) or "-")
                 for e in entries
             ]
-            return budget.shape(lines, len(entries), store, max_tokens).render()
+            cited = [e.path for e in entries]
+            return respond(store, lines, cited, len(entries), max_tokens)
 
     return server
 

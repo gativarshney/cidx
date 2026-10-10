@@ -16,10 +16,10 @@ from collections.abc import Callable, Sequence
 from importlib.metadata import version
 from pathlib import Path
 
-from cidx.core import incremental, indexer, query, repoid
+from cidx.core import freshness, incremental, indexer, query, repoid
 from cidx.core.query import OutlineRow, ReferenceRow, RepoMapEntry
 from cidx.core.store import Store, SymbolRow
-from cidx.ranking import scorer
+from cidx.ranking import budget, scorer
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -158,25 +158,32 @@ def _run_query(args: argparse.Namespace) -> int:
         return 1
     with store:
         if args.repo_map:
+            entries = query.repo_map(store, limit=args.limit)
             return _emit(
                 args,
-                query.repo_map(store, limit=args.limit),
+                entries,
                 _format_map_entry,
                 "repo map is empty; run `cidx index` first",
+                _stale_note(store, args.repo, [e.path for e in entries]),
             )
         if args.outline:
+            path = Path(args.name).as_posix()
+            outline = query.outline_file(store, path)
             return _emit(
                 args,
-                query.outline_file(store, Path(args.name).as_posix()),
+                outline,
                 _format_outline_row,
                 f"no symbols for {args.name!r}; is the path repo-relative?",
+                _stale_note(store, args.repo, [path] if outline else []),
             )
         if args.references:
+            refs = query.find_references(store, args.name, limit=args.limit)
             return _emit(
                 args,
-                query.find_references(store, args.name, limit=args.limit),
+                refs,
                 _format_reference_row,
                 f"no references to {args.name!r}; try grep as a fallback",
+                _stale_note(store, args.repo, [r.path for r in refs]),
             )
         matches: list = query.find_definition(store, args.name, limit=args.limit)
         if not matches:
@@ -188,7 +195,14 @@ def _run_query(args: argparse.Namespace) -> int:
             matches,
             _format_row,
             f"no matches for {args.name!r}; try grep as a fallback",
+            _stale_note(store, args.repo, [m.path for m in matches]),
         )
+
+
+def _stale_note(store: Store, repo: str, cited: list[str]) -> str | None:
+    """The shared stale-citation check (ADR-018), or None when all fresh."""
+    stale = freshness.changed_paths(store, Path(repo).resolve(), cited)
+    return budget.stale_message(stale) if stale else None
 
 
 def _emit(
@@ -196,7 +210,11 @@ def _emit(
     rows: list,
     format_row: Callable[..., str],
     empty_message: str,
+    note: str | None = None,
 ) -> int:
+    # notes go to stderr, so stdout stays pure data (and --json parseable)
+    if note:
+        print(note, file=sys.stderr)
     if args.json:
         print(json.dumps([dataclasses.asdict(row) for row in rows]))
         return 0

@@ -14,6 +14,14 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
   cidx output, and the start of the documentation. The Node toolchain is
   confined to that directory (ADR-017).
 
+### Fixed
+
+- Answers could cite files that had changed or been deleted since they were
+  indexed, with nothing to say so: `index_age_ms` measures time since the
+  last write, not drift on disk. Every CLI and MCP answer now re-checks the
+  files it cites and names any that changed (ADR-018); measured at 0.8 ms
+  for a typical answer on Django.
+
 ## [0.1.0a2] - 2026-09-16
 
 Fixes found by auditing cidx on Django (3,043 files) and by CI: two
