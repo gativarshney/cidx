@@ -150,9 +150,47 @@ namespaces (`import * as core from "./core.js"`) and calls
 references resolve by unique global name at best. Recorded as a known
 limitation in the README.
 
+## Grep and cidx, same question (Django, cidx f029ad9, 2026-10-10)
+
+What comes back when the same question is asked with ripgrep (14.1.1) the
+way an agent's grep tool would, and with cidx. Only output size is compared:
+tokens are estimated as characters ÷ 4 over each command's stdout. This is
+not an agent benchmark; it says nothing about task success.
+
+```bash
+cd django
+rg -n -w save .                              # 1,899 lines, ~39,445 tokens
+rg -l -w save .                              # 417 files, ~4,137 tokens
+rg -n "^\s*(def|class) save\b" .             # 37 lines, ~712 tokens
+cidx query Model.save --repo .               # 1 line, ~36 tokens
+cidx query Model.save --references --limit 5000 --repo .
+                                             # 959 rows, 0 resolved to Model.save
+rg -n -w get_object_or_404 .                 # 59 lines, ~1,429 tokens
+cidx query get_object_or_404 --references --repo .
+                                             # 15 lines, ~411 tokens, all [import]
+rg -n "^\s*(def|class) reverse_lazy\b" .     # 0 lines
+cidx query reverse_lazy --repo .             # reverse_lazy  const  django/urls/base.py:111
+```
+
+The same comparison for `get_user_model`: ~1,149 vs ~589 tokens; a `def`
+search finds it in one line (~15 tokens), so grep wins there. One `rg` over
+the repository took 219 ms and one `cidx query` 266 ms including Python
+startup: speed is not the difference.
+
+## Stale citations (cidx 73ce729)
+
+Before ADR-018, an index outliving its files answered as if nothing had
+happened. Reproduced with one file: index it, delete it, query —
+`Repo.save  method  app.py:2` printed, nothing on stderr. Observed at scale
+when a cleaned temporary directory left 3 of Django's 7,091 files on disk
+while queries kept returning full results. Since 73ce729 every CLI and MCP
+answer re-checks the files it cites; on a fresh Django index that costs a
+median 0.03 ms for 1 cited file, 0.81 ms for 30, and 8.07 ms for 200
+(20 repetitions each).
+
 ## Correctness
 
-- Test suite: 263 tests (`pytest -q`), ruff clean, at cidx 35899c1.
+- Test suite: 277 tests (`pytest -q`), ruff clean, at cidx f029ad9.
 - Property suite (`tests/convergence/`): Hypothesis generates up to 12
   random writes, deletes, and renames over eight paths (Python, TypeScript,
   TSX, JavaScript, a non-code file, a junk-directory file) and eight

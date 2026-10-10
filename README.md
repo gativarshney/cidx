@@ -11,9 +11,24 @@ A zero-config local code index for AI coding agents — with an optional, reprod
 
 ## What this is
 
-Most coding agents find code by grepping and reading files, which works, but on large repositories it burns tokens on files that never end up mattering. cidx parses a repository into a symbol and reference index (tree-sitter, SQLite), keeps it fresh within milliseconds of every save, and serves ranked, token-budgeted answers over MCP: where a symbol is defined, who uses it, what a file contains, what the repo looks like.
+Most coding agents find code by grepping and reading files, which works, but on large repositories it burns tokens on files that never end up mattering. cidx parses a repository into a symbol and reference index (tree-sitter, SQLite), keeps it fresh as you save, and serves ranked, token-budgeted answers over MCP: where a symbol is defined, who uses it, what a file contains, what the repo looks like.
 
 Zero-config means exactly that: no API keys, no vector database, no Docker, no cloud, no accounts. One SQLite file, stored outside your repo (`%LOCALAPPDATA%\cidx` on Windows, `~/.cache/cidx` elsewhere). Read-only by design: the five MCP tools can only look things up, so a hostile file in a repo has no blast radius.
+
+## When it helps, and when it doesn't
+
+cidx is not faster than grep: one `rg` and one cidx query over Django each take about 0.2–0.3 s. The difference is what comes back. The same question, asked both ways on Django (3,043 files; measured 2026-10-10, tokens estimated as characters ÷ 4):
+
+| Question | `rg -n -w` over the repository | cidx |
+|---|---|---|
+| Where is `Model.save` defined? (a common name) | 1,899 lines, ~39,400 tokens; a `def save` search alone gives 37 candidates | 1 line, ~36 tokens |
+| Where is `reverse_lazy` defined? (an assignment, not a `def`) | a `def`/`class` search finds nothing | 1 line |
+| Who uses `get_object_or_404`? (a unique name) | 59 lines, ~1,430 tokens | 15 lines, ~410 tokens, each tagged with how it resolved |
+| Who calls `Model.save`? (a method called on objects) | ~39,400 tokens of text matches | 959 name matches, none resolved to `Model.save`; the answer says so |
+
+So it helps most on large repositories, common names, definitions grep can't recognize, and orienting in unfamiliar code (`repo_map` has no grep equivalent). It helps little for unique names or small repositories, and it is the wrong tool for free-text search. Type-aware references for method calls need a language server (LSP); cidx does not try to be one.
+
+This compares single answers, not outcomes: whether an agent solves more tasks, or spends less, with cidx is what the evaluation harness below measures, and no paid run has been published. Commands and details: [docs/verification.md](docs/verification.md).
 
 ## What works today
 
@@ -98,7 +113,7 @@ That corpus is small. On Django (3,043 files, 76k symbols, 207k references; meas
 | Query p95: search_symbols (ranked) / repo_map | 138.8 ms / 134.7 ms — over the 50 ms target at this scale |
 | `cidx check` | 24–59 s, no drift |
 
-Test suite: **263 tests** (golden-file extractor tests, the property-based convergence suite, MCP-over-stdio integration tests), green on CI across {Ubuntu, macOS, Windows} × {Python 3.11, 3.12, 3.13}.
+Test suite: **277 tests** (golden-file extractor tests, the property-based convergence suite, MCP-over-stdio integration tests), green on CI across {Ubuntu, macOS, Windows} × {Python 3.11, 3.12, 3.13}.
 
 ## Known limitations (v1, stated on purpose)
 
@@ -116,12 +131,19 @@ Test suite: **263 tests** (golden-file extractor tests, the property-based conve
 - **Reference resolution has no type checker.** Confidence tags (`exact`,
   `import`, `name-only`) state how each reference was resolved rather than
   promising precision; the evaluation harness can measure it per tier.
+  Method calls on objects (`obj.save()`) usually match by name only; when
+  nothing in an answer resolved, the answer says so.
 - **After a save, freshness costs grow with the repository.** The saved
   file's own rows land in about 0.3 s, but references are then re-resolved
   across the whole index — milliseconds on a small project, about 1.5 s on
   Django — so back-to-back saves queue behind it. Every response carries an
   `index_age_ms` freshness stamp, and `cidx check` can prove convergence at
   any time.
+- **Changes outside a watcher are caught only where an answer looks.** When
+  nothing is running `cidx serve`, every answer re-checks the files it cites
+  and names any that changed since indexing (ADR-018), but a definition
+  added in a file it does not cite stays invisible until `cidx index` or
+  the watcher picks it up.
 - **Ranked search and the repository map scan.** `search_symbols` and
   `repo_map` take ~135 ms p95 on Django; exact lookups stay under 30 ms.
 
